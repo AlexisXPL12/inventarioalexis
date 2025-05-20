@@ -6,7 +6,7 @@ require_once("../model/adminModel.php");
 
 $objUsuario = new UsuarioModel();
 $objSesion = new SessionModel();
-$objInstitucion= new InstitucionModel();
+$objInstitucion = new InstitucionModel();
 $objAdmin = new AdminModel();
 
 $tipo = $_GET['tipo'];

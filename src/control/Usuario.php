@@ -1,5 +1,10 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
 require_once('../model/admin-sesionModel.php');
 require_once('../model/admin-usuarioModel.php');
 require_once('../model/adminModel.php');
@@ -144,10 +149,134 @@ if ($tipo == "reiniciar_password") {
     }
     echo json_encode($arr_Respuesta);
 }
-if ($tipo == "sent_email_password"){
+if ($tipo == "sent_email_password") {
     $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
     if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
-        $datos_sesion = $objSesion -> buscarSesionLoginById($id_sesion);
-        print_r($datos_sesion);
+        $datos_sesion = $objSesion->buscarSesionLoginById($id_sesion);
+        $datos_usuario = $objUsuario->buscarUsuarioById($datos_sesion->id_usuario);
+        $llave = $objAdmin->generar_llave(30);
+
+        $token = password_hash($llave, PASSWORD_DEFAULT);
+        $update = $objUsuario->updateResetPassword($datos_sesion->id_usuario, $llave, 1);
+
+        if ($update) {
+            $mail = new PHPMailer(true);
+
+            try {
+                //Server settings
+                $mail->SMTPDebug = SMTP::DEBUG_SERVER; //Enable verbose debug output
+                $mail->isSMTP(); //Send using SMTP
+                $mail->Host = 'mail.importecsolutions.com'; //Set the SMTP server to send through
+                $mail->SMTPAuth = true; //Enable SMTP authentication
+                $mail->Username = 'alexisvaldivia@importecsolutions.com'; //SMTP username
+                $mail->Password = 'Agvt2006@'; //SMTP password
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; //Enable implicit TLS encryption
+                $mail->Port = 465; //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+
+                //Recipients
+                
+                $mail->setFrom('alexisvaldivia@importecsolutions.com', 'Cambio de Contraseña - Xtreme Ai');
+                $mail->addAddress($datos_usuario->correo, $datos_usuario->nombres_apellidos); //Add a recipient
+                /* $mail->addAddress('ellen@example.com'); //Name is optional
+                $mail->addReplyTo('info@example.com', 'Information');
+                $mail->addCC('cc@example.com');
+                $mail->addBCC('bcc@example.com');
+
+                //Attachments
+                $mail->addAttachment('/var/tmp/file.tar.gz'); //Add attachments
+                $mail->addAttachment('/tmp/image.jpg', 'new.jpg'); //Optional name */
+
+                //Content
+                $mail->Charset = 'UTF-8';
+                $mail->isHTML(true); //Set email format to HTML
+                $mail->Subject = 'Restablece tu contraseña';
+
+                $mail->Body = '
+                        <!DOCTYPE html>
+                        <html lang="es">
+                        <head>
+                            <meta charset="UTF-8">
+                        <title>Restablecer contraseña</title>
+                        <style>
+                            body {
+      background-color: #0f1117;
+      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+      color: #e4e4e4;
+      margin: 0;
+      padding: 0;
     }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #1a1d26;
+      border-radius: 10px;
+      padding: 40px;
+      box-shadow: 0 0 20px rgba(0, 150, 255, 0.1);
+    }
+    .header {
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 30px;
+      color: #00b4ff;
+    }
+    .content {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #cfcfcf;
+    }
+    .button {
+      display: inline-block;
+      background: linear-gradient(135deg, #00b4ff, #006aff);
+      color: white;
+      text-decoration: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 30px;
+      transition: background 0.3s ease;
+    }
+    .button:hover {
+      background: linear-gradient(135deg, #0090dd, #0055cc);
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Restablecimiento de Contraseña</div>
+    <div class="content">
+      <p>Hola <strong>' . htmlspecialchars($usuario->nombre) . '</strong>,</p>
+      <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+      <p>Si tú hiciste esta solicitud, por favor haz clic en el siguiente botón para continuar:</p>
+      <p style="text-align: center;">
+        <a href="' . $url . '" class="button">Restablecer Contraseña</a>
+      </p>
+      <p>Este enlace estará disponible durante 1 hora. Si no solicitaste esto, puedes ignorar este correo.</p>
+    </div>
+    <div class="footer">
+      &copy; ' . date("Y") . ' TuEmpresa | Seguridad y confianza digital
+    </div>
+  </div>
+</body>
+</html>
+';
+
+                $mail->send();
+                echo 'Message has been sent';
+            } catch (Exception $e) {
+                echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            }
+        } else {
+            echo "Fallo al Actulizar";
+        }
+
+
+    }
+
 }

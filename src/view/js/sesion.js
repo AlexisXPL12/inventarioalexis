@@ -38,7 +38,7 @@ async function iniciar_sesion() {
                 body: formData,
                 timer: 1500
             });
-            
+
             location.replace(base_url);
             location.replace(base_url);
         } else {
@@ -72,7 +72,7 @@ async function cerrar_sesion() {
     }
 }
 // ---------------------------------------------  CAMBIAR CONTRASEÑA -----------------------------------------------
-async function sent_email_password(){
+async function sent_email_password() {
     const datos = new FormData();
     datos.append('sesion', session_session);
     datos.append('token', token_token);
@@ -83,8 +83,8 @@ async function sent_email_password(){
             cache: 'no-cache',
             body: datos
         });
-        
+
     } catch (error) {
-        
+
     }
 }
