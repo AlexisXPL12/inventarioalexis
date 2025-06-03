@@ -19,6 +19,18 @@ $objAdmin = new AdminModel();
 $id_sesion = $_POST['sesion'];
 $token = $_POST['token'];
 
+if ($tipo == 'validar_datos_reset_password') {
+    $id_email = $_POST['id'];
+    $token_email = $_POST['token'];
+
+    $arrRespuesta = array('status' =>false ,'message'=> 'Link Caducado');
+    $datos_usuario = $objUsuario->buscarUsuarioById($id_email);
+    if ($datos_usuario->reset_password == 1 && password_verify( $datos_usuario->token_password,$token_email)) {
+        $arrRespuesta = array('status' =>true ,'message'=> 'Ok');
+    }
+    echo json_encode($arrRespuesta);
+}
+
 if ($tipo == "listar_usuarios_ordenados_tabla") {
     $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
     if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
@@ -168,8 +180,8 @@ if ($tipo == "sent_email_password") {
                 $mail->isSMTP();
                 $mail->Host = 'mail.importecsolutions.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'correo';
-                $mail->Password = '';
+                $mail->Username = 'alexisvaldivia@importecsolutions.com';
+                $mail->Password = 'Agvt2006@';
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                 $mail->Port = 465;
 
@@ -178,7 +190,7 @@ if ($tipo == "sent_email_password") {
                 $mail->Encoding = 'base64';
 
                 //Recipients
-                $mail->setFrom('correo', 'Cambio de Contraseña - Xtreme AI');
+                $mail->setFrom('alexisvaldivia@importecsolutions.com', 'Cambio de Contraseña - Xtreme AI');
                 $mail->addAddress($datos_usuario->correo, $datos_usuario->nombres_apellidos);
 
                 //Content
@@ -423,7 +435,7 @@ if ($tipo == "sent_email_password") {
         
         <div class="content">
             <div class="title">Solicitud de Cambio de Contraseña</div>
-            <div class="subtitle">Hola, <strong>estimado cliente</strong></div>
+            <div class="subtitle">Hola, <strong>'.$datos_usuario->nombres_apellidos.'</strong></div>
             
             <div class="description">
                 Hemos recibido una solicitud para cambiar la contraseña de tu cuenta en XTREME AI. Para garantizar la máxima seguridad de tu información y proyectos de corte láser e impresión, necesitamos verificar que realmente fuiste tú quien realizó esta solicitud.
@@ -448,7 +460,7 @@ if ($tipo == "sent_email_password") {
             </div>
             
             <div class="button-container">
-                <a href="' . $url . '" class="button">Cambiar Mi Contraseña</a>
+                <a href="'. BASE_URL.'reset-password?data='.$datos_usuario->id.'&data2='.$token.'" class="button" style="color: white">Cambiar Mi Contraseña</a>
             </div>
             
             <div class="security-info">
