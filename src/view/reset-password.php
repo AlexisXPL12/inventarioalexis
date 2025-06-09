@@ -255,6 +255,8 @@
       }
     }
   </style>
+  <!-- Sweet Alerts css -->
+  <link href="<?php echo BASE_URL ?>src/view/pp/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
   <script>
     const base_url = '<?php echo BASE_URL; ?>';
     const base_url_server = '<?php echo BASE_URL_SERVER; ?>';
@@ -263,18 +265,14 @@
 </head>
 <body>
   <div class="container">
-    <input type="hidden" id="data" value="">
-    <input type="hidden" id="data2" value="">
-    
+    <input type="hidden" id="data" value="<?php echo $_GET['data']?>">
+    <input type="hidden" id="data2" value="<?= @$_GET['data2'] ?>">
     <h2>
       <i class="fas fa-key"></i>
       Actualizar Contraseña
     </h2>
-
     <form id="passwordForm" novalidate>
-      <div class="form-group">
-    <input type="hidden" id="data" value="<?php echo $_GET['data']?>">
-    <input type="hidden" id="data2" value="<?= @$_GET['data2'] ?>">
+      <div class="form-group">  
       <label for="password">Nueva Contraseña</label>
     <div class="input-container">
           <input type="password" id="password" placeholder="Ingresa tu nueva contraseña" required>
