@@ -264,9 +264,9 @@
   <script src=""></script>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="passwordCard">
     <input type="hidden" id="data" value="<?php echo $_GET['data']?>">
-    <input type="hidden" id="data2" value="<?= @$_GET['data2'] ?>">
+    <input type="hidden" id="data2" value="<?php echo urldecode($_GET['data2']) ?>">
     <h2>
       <i class="fas fa-key"></i>
       Actualizar Contraseña
@@ -298,10 +298,10 @@
       </div>
 
       <div class="requirements">
-        <h4>Requisitos de la contraseña:</h4>
+        <h4>Requisitos de la contraseña (recomendados):</h4>
         <div class="requirement" id="req-length">
           <i class="fas fa-times"></i>
-          Al menos 8 caracteres
+          Al menos 6 caracteres
         </div>
         <div class="requirement" id="req-uppercase">
           <i class="fas fa-times"></i>
@@ -338,9 +338,9 @@
     const form = document.getElementById('passwordForm');
     const submitBtn = document.getElementById('submitBtn');
     
-    // Configuración de requisitos
+    // Configuración de requisitos (ahora menos estricta)
     const requirements = {
-      length: { regex: /.{8,}/, element: 'req-length' },
+      length: { regex: /.{6,}/, element: 'req-length' },
       uppercase: { regex: /[A-Z]/, element: 'req-uppercase' },
       lowercase: { regex: /[a-z]/, element: 'req-lowercase' },
       number: { regex: /\d/, element: 'req-number' },
@@ -392,11 +392,11 @@
         strengthText.textContent = 'Fortaleza: Muy débil';
         strengthFill.className = 'strength-fill';
       } else if (score <= 2) {
-        strengthFill.style.width = '25%';
+        strengthFill.style.width = '40%';
         strengthText.textContent = 'Fortaleza: Débil';
         strengthFill.className = 'strength-fill strength-weak';
-      } else if (score <= 4) {
-        strengthFill.style.width = '60%';
+      } else if (score <= 3) {
+        strengthFill.style.width = '70%';
         strengthText.textContent = 'Fortaleza: Media';
         strengthFill.className = 'strength-fill strength-medium';
       } else {
@@ -408,7 +408,7 @@
       return score;
     }
 
-    // Función para validar contraseñas
+    // Función para validar contraseñas (menos estricta)
     function validatePasswords() {
       const password = passwordInput.value;
       const confirmPassword = confirmInput.value;
@@ -418,16 +418,16 @@
       
       let isValid = true;
 
-      // Validar fortaleza de contraseña
+      // Validar fortaleza de contraseña (mínimo 1 requisito cumplido y al menos 6 caracteres)
       const strengthScore = evaluatePasswordStrength(password);
       
-      if (password && strengthScore < 5) {
+      if (password && password.length < 6) {
         passwordInput.classList.add('error');
         passwordInput.classList.remove('success');
-        passwordError.textContent = 'La contraseña debe cumplir todos los requisitos';
+        passwordError.textContent = 'La contraseña debe tener al menos 6 caracteres';
         passwordError.style.display = 'block';
         isValid = false;
-      } else if (password) {
+      } else if (password && password.length >= 6) {
         passwordInput.classList.add('success');
         passwordInput.classList.remove('error');
         passwordError.style.display = 'none';
@@ -441,7 +441,7 @@
         confirmError.style.display = 'block';
         confirmSuccess.style.display = 'none';
         isValid = false;
-      } else if (confirmPassword && password === confirmPassword && strengthScore === 5) {
+      } else if (confirmPassword && password === confirmPassword && password.length >= 6) {
         confirmInput.classList.add('success');
         confirmInput.classList.remove('error');
         confirmError.style.display = 'none';
@@ -452,8 +452,8 @@
         confirmSuccess.style.display = 'none';
       }
 
-      // Habilitar/deshabilitar botón
-      const allValid = password && confirmPassword && strengthScore === 5 && password === confirmPassword;
+      // Habilitar/deshabilitar botón (solo requiere que ambas contraseñas coincidan y tengan al menos 6 caracteres)
+      const allValid = password && confirmPassword && password.length >= 6 && password === confirmPassword;
       submitBtn.disabled = !allValid;
       
       return allValid;
@@ -463,16 +463,86 @@
     passwordInput.addEventListener('input', validatePasswords);
     confirmInput.addEventListener('input', validatePasswords);
 
+    // Función para validar inputs de contraseña (mejorada)
+    function validar_input_password() {
+      const pass1 = document.getElementById('password').value;
+      const pass2 = document.getElementById('confirmPassword').value;
+      
+      // Validar que ambas contraseñas estén llenas
+      if (!pass1 || !pass2) {
+        return false;
+      }
+      
+      // Validar que coincidan
+      if (pass1 !== pass2) {
+        return false;
+      }
+      
+      // Validar longitud mínima
+      if (pass1.length < 6) {
+        return false;
+      }
+      
+      return true;
+    }
+
+    // Función para actualizar contraseña en el servidor
+    async function actualizar_contraseña() {
+      const id = document.getElementById('data').value;
+      const token = document.getElementById('data2').value;
+      const password = passwordInput.value;
+      
+      const formData = new FormData();
+      formData.append('id', id);
+      formData.append('token', token);
+      formData.append('password', password);
+      formData.append('sesion', '');
+      
+      try {
+        let respuesta = await fetch(base_url_server + 'src/control/Usuario.php?tipo=actualizar_password_reset', {
+          method: 'POST',
+          mode: 'cors',
+          cache: 'no-cache',
+          body: formData
+        });
+        
+        let json = await respuesta.json();
+        
+        if (json.status) {
+          await Swal.fire({
+            type: 'success',
+            title: '¡Contraseña actualizada!',
+            text: 'Tu contraseña ha sido actualizada correctamente. Serás redirigido al login.',
+            confirmButtonClass: 'btn btn-confirm mt-2',
+            timer: 3000,
+            timerProgressBar: true
+          });
+          
+          // Redirigir al login después de 3 segundos
+          setTimeout(() => {
+            location.replace(base_url + "login");
+          }, 3000);
+          
+        } else {
+          throw new Error(json.mensaje || 'Error al actualizar la contraseña');
+        }
+        
+      } catch (error) {
+        console.log("Error al actualizar contraseña: " + error);
+        throw error;
+      }
+    }
+
     // Manejar envío del formulario
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
       
       if (!validatePasswords()) {
         Swal.fire({
-          icon: 'error',
+          type: 'error',
           title: 'Error de validación',
           text: 'Por favor, corrige los errores antes de continuar.',
-          confirmButtonColor: '#4CAF50'
+          confirmButtonClass: 'btn btn-confirm mt-2'
         });
         return;
       }
@@ -486,47 +556,19 @@
       loading.style.display = 'block';
 
       try {
-        // Simular petición al servidor
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Llamar a la función para actualizar contraseña
+        await actualizar_contraseña();
         
-        // Aquí harías la petición real al servidor
-        /*
-        const response = await fetch('/api/update-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            password: passwordInput.value,
-            data: document.getElementById('data').value,
-            data2: document.getElementById('data2').value
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Error al actualizar la contraseña');
-        }
-        */
-
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Contraseña actualizada!',
-          text: 'Tu contraseña ha sido actualizada correctamente.',
-          confirmButtonColor: '#4CAF50',
-          timer: 3000,
-          timerProgressBar: true
-        });
-
         // Limpiar formulario
         form.reset();
         validatePasswords();
         
       } catch (error) {
         Swal.fire({
-          icon: 'error',
+          type: 'error',
           title: 'Error',
-          text: 'Hubo un problema al actualizar la contraseña. Inténtalo de nuevo.',
-          confirmButtonColor: '#4CAF50'
+          text: error.message || 'Hubo un problema al actualizar la contraseña. Inténtalo de nuevo.',
+          confirmButtonClass: 'btn btn-confirm mt-2'
         });
       } finally {
         // Ocultar loading
@@ -538,6 +580,10 @@
 
     // Inicializar validación
     validatePasswords();
+  </script>
+  <script src="<?php echo BASE_URL ?>src/view/js/principal.js"></script>
+  <script>
+    validar_datos_reset_password();
   </script>
 </body>
 </html>

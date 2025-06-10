@@ -454,13 +454,13 @@ if ($tipo == "sent_email_password") {
                 </div>
                 <div class="feature">
                     <div class="feature-icon">⏰</div>
-                    <div class="feature-title">Válido 24h</div>
+                    <div class="feature-title">Válido 2h</div>
                     <div class="feature-desc">El enlace expira automáticamente por tu seguridad</div>
                 </div>
             </div>
             
             <div class="button-container">
-                <a href="'. BASE_URL.'reset-password?data='.$datos_usuario->id.'&data2='.$token.'" class="button" style="color: white">Cambiar Mi Contraseña</a>
+                <a href="'. BASE_URL.'reset-password/?data='.$datos_usuario->id.'&data2='.urlencode($token).'" class="button" style="color: white">Cambiar Mi Contraseña</a>
             </div>
             
             <div class="security-info">
@@ -472,7 +472,7 @@ if ($tipo == "sent_email_password") {
             
             <div class="backup-link">
                 <strong>¿Problemas con el botón?</strong> Copia y pega el siguiente enlace en tu navegador:<br>
-                <span class="backup-url">https://xtreme-ai.com/reset-password?token=abc123secure</span>
+                <span class="backup-url">'. BASE_URL.'reset-password/?data='.$datos_usuario->id.'&data2='.urlencode($token).'</span>
             </div>
         </div>
         
