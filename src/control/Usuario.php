@@ -19,14 +19,45 @@ $objAdmin = new AdminModel();
 $id_sesion = $_POST['sesion'];
 $token = $_POST['token'];
 
+if ($tipo == 'actualizar_password_reset') {
+    $id = $_POST['id'];
+    $token_email = $_POST['token'];
+    $password = $_POST['password'];
+
+    $arrRespuesta = array('status' => false, 'message' => 'Token inválido o expirado');
+     // Buscar usuario y validar token
+    $datos_usuario = $objUsuario->buscarUsuarioById($id);
+    if ($datos_usuario->reset_password == 1 && password_verify($datos_usuario->token_password, $token_email)) {
+        // Encriptar nueva contraseña
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        // Actualizar contraseña en base de datos
+        $actualizar = $objUsuario->actualizarPassword($id, $passwordHash);
+        if ($actualizar) {
+             // Limpiar campos de reset después de actualizar exitosamente
+            $limpiar_reset = $objUsuario->updateResetPassword($id, '', 0);
+            if ($limpiar_reset) {
+                $arrRespuesta = array('status' => true, 'message' => 'Contraseña actualizada correctamente');
+            } else {
+                $arrRespuesta = array('status' => true, 'mensaje' => 'Contraseña actualizada correctamente');
+            }
+        } else {
+            $arrRespuesta = array('status' => false, 'mensaje' => 'Error al actualizar la contraseña');
+        }
+
+    }
+    echo json_encode($arrRespuesta);
+}
+
+
 if ($tipo == 'validar_datos_reset_password') {
     $id_email = $_POST['id'];
     $token_email = $_POST['token'];
 
-    $arrRespuesta = array('status' =>false ,'message'=> 'Link Caducado');
+    $arrRespuesta = array('status' => false, 'message' => 'Link Caducado');
     $datos_usuario = $objUsuario->buscarUsuarioById($id_email);
-    if ($datos_usuario->reset_password == 1 && password_verify( $datos_usuario->token_password,$token_email)) {
-        $arrRespuesta = array('status' =>true ,'message'=> 'Ok');
+    if ($datos_usuario->reset_password == 1 && password_verify($datos_usuario->token_password, $token_email)) {
+        $arrRespuesta = array('status' => true, 'message' => 'Ok');
     }
     echo json_encode($arrRespuesta);
 }
@@ -201,7 +232,7 @@ if ($tipo == "sent_email_password") {
                 $url_reset = "https://tu-dominio.com/reset-password.php?token=" . urlencode($llave);
 
                 // CORREO
-                $mail->Body ='
+                $mail->Body = '
                         <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -435,7 +466,7 @@ if ($tipo == "sent_email_password") {
         
         <div class="content">
             <div class="title">Solicitud de Cambio de Contraseña</div>
-            <div class="subtitle">Hola, <strong>'.$datos_usuario->nombres_apellidos.'</strong></div>
+            <div class="subtitle">Hola, <strong>' . $datos_usuario->nombres_apellidos . '</strong></div>
             
             <div class="description">
                 Hemos recibido una solicitud para cambiar la contraseña de tu cuenta en XTREME AI. Para garantizar la máxima seguridad de tu información y proyectos de corte láser e impresión, necesitamos verificar que realmente fuiste tú quien realizó esta solicitud.
@@ -460,7 +491,7 @@ if ($tipo == "sent_email_password") {
             </div>
             
             <div class="button-container">
-                <a href="'. BASE_URL.'reset-password/?data='.$datos_usuario->id.'&data2='.urlencode($token).'" class="button" style="color: white">Cambiar Mi Contraseña</a>
+                <a href="' . BASE_URL . 'reset-password/?data=' . $datos_usuario->id . '&data2=' . urlencode($token) . '" class="button" style="color: white">Cambiar Mi Contraseña</a>
             </div>
             
             <div class="security-info">
@@ -472,7 +503,7 @@ if ($tipo == "sent_email_password") {
             
             <div class="backup-link">
                 <strong>¿Problemas con el botón?</strong> Copia y pega el siguiente enlace en tu navegador:<br>
-                <span class="backup-url">'. BASE_URL.'reset-password/?data='.$datos_usuario->id.'&data2='.urlencode($token).'</span>
+                <span class="backup-url">' . BASE_URL . 'reset-password/?data=' . $datos_usuario->id . '&data2=' . urlencode($token) . '</span>
             </div>
         </div>
         
@@ -507,13 +538,13 @@ if ($tipo == "sent_email_password") {
 ';
 
                 $result = $mail->send();
-                
+
                 if ($result) {
                     $arr_Respuesta = array('status' => true, 'msg' => 'Email enviado correctamente');
                 } else {
                     $arr_Respuesta = array('status' => false, 'msg' => 'Error al enviar el email');
                 }
-                
+
             } catch (Exception $e) {
                 $arr_Respuesta = array('status' => false, 'msg' => 'Error: ' . $mail->ErrorInfo);
             }
@@ -521,7 +552,7 @@ if ($tipo == "sent_email_password") {
             $arr_Respuesta = array('status' => false, 'msg' => 'Fallo al actualizar la base de datos');
         }
     }
-    
+
     // Devolver respuesta JSON
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($arr_Respuesta, JSON_UNESCAPED_UNICODE);

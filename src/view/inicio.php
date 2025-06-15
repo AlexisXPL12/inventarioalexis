@@ -1,3 +1,38 @@
+<!-- Tarjeta de Presentación -->
+<div class="card welcome-card">
+    <div class="card-body position-relative">
+        <!-- Icono decorativo -->
+        <i class="fas fa-cube welcome-icon"></i>
+
+        <h4 class="card-title">
+            <i class="fas fa-star mr-2"></i>
+            Bienvenido al Sistema de Gestión
+        </h4>
+
+        <p class="card-text">
+            Este es tu panel de control principal donde puedes gestionar todos los aspectos
+            del inventario de tu institución. Navega por las diferentes secciones usando el
+            menú superior para acceder a las funcionalidades específicas que necesites.
+        </p>
+
+        <p class="card-text">
+            <small class="text-muted">
+                <i class="fas fa-info-circle mr-2"></i>
+                Utiliza los botones de acción rápida para comenzar o consulta los reportes
+                para obtener información detallada sobre tu inventario.
+            </small>
+        </p>
+
+        <div class="d-flex flex-wrap">
+            <button class="btn btn-outline-secondary">
+                <i class="fas fa-chart-line"></i>Ver Reportes
+            </button>
+            <button class="btn btn-outline-secondary">
+                <i class="fas fa-cog"></i>Configuración
+            </button>
+        </div>
+    </div>
+</div>
 <!-- start page title -->
 <div class="row">
     <div class="col-md-6 col-xl-3">
