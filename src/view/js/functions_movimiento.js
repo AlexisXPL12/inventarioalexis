@@ -115,6 +115,7 @@ function generarfilastabla(item, ambientes, bienes) {
                             <td>${nombre_amb_destino}</td>
                             <td>${item.usuario_registro}</td>
                             <td>${item.options}</td>
+                            <td>${item.options}</td>
                 `;
     document.querySelector('#modals_editar').innerHTML += `<div class="modal fade modal_ver${item.id}" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg">
@@ -524,4 +525,3 @@ async function actualizarMovimiento(id) {
         console.log("Error al actualizar periodo" + e);
     }
 }
-

@@ -225,17 +225,26 @@ async function validar_datos_reset_password() {
     );
     let json = await respuesta.json();
     if (json.status == false) {
-      let formulario = document.getElementById("passwordCard");
-      formulario.innerHTML = `
-          <div style="text-align: center; color: white; font-weight: bold;">
-              <p style="font-size: 1.2em;"><i class="fas fa-exclamation-triangle"></i> El enlace ha expirado o ya fue utilizado.</p>
-              <p>Por razones de seguridad, te recomendamos iniciar sesión en tu cuenta para generar un nuevo enlace de recuperación.</p>
-              <p>Si no solicitaste el cambio, puedes ignorar este mensaje.</p>
-              <a href="" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #ffffff22; color: #fff; border-radius: 8px; text-decoration: none; transition: background 0.3s;"><i class="fas fa-sign-in-alt"></i> Iniciar sesión </a>
-        </div> 
-      `;
-      //location.replace(base_url + "login");
-    }
+  let formulario = document.getElementById("passwordCard");
+  formulario.innerHTML = `
+    <div style="text-align: center; color: white; font-weight: bold;">
+      <p style="font-size: 1.2em;">
+        <i class="fas fa-exclamation-triangle"></i> El enlace ha expirado o ya fue utilizado.
+      </p>
+      <p>Por razones de seguridad, te recomendamos iniciar sesión en tu cuenta para generar un nuevo enlace de recuperación.</p>
+      <p>Si no solicitaste el cambio, puedes ignorar este mensaje.</p>
+      <a href="${base_url}login" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #ffffff22; color: #fff; border-radius: 8px; text-decoration: none; transition: background 0.3s;">
+        <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+      </a>
+      <p style="margin-top: 10px; font-size: 0.9em; color: #ccc;">Serás redirigido automáticamente en unos segundos...</p>
+    </div>
+  `;
+
+  // Redirección automática al login después de 7 segundos
+  setTimeout(() => {
+    location.replace(base_url + "login");
+  }, 7000);
+}
     //console.log(respuesta);
   } catch (e) {
     console.log("Error al cargar categorias" + e);
@@ -250,7 +259,7 @@ function validar_input_password() {
 async function actualizar_contraseña() {
   const id = document.getElementById('data').value;
   const token = document.getElementById('data2').value;
-  const password = passwordInput.value;
+  const password = document.getElementById('password').value; // Corregido
 
   const formData = new FormData();
   formData.append('id', id);
@@ -270,7 +279,7 @@ async function actualizar_contraseña() {
 
     if (json.status) {
       await Swal.fire({
-        type: 'success',
+        icon: 'success',
         title: '¡Contraseña actualizada!',
         text: 'Tu contraseña ha sido actualizada correctamente. Serás redirigido al login.',
         confirmButtonClass: 'btn btn-confirm mt-2',
@@ -281,7 +290,7 @@ async function actualizar_contraseña() {
       // Redirigir al login después de 3 segundos
       setTimeout(() => {
         location.replace(base_url + "login");
-      }, 3000);
+      }, 500);
 
     } else {
       throw new Error(json.mensaje || 'Error al actualizar la contraseña');
@@ -290,10 +299,12 @@ async function actualizar_contraseña() {
   } catch (error) {
     console.log("Error al actualizar contraseña: " + error);
     throw error;
-  }
+  }  
 }
+
 
 // ENVIAR INFORMACION DEL PASSWORD Y EL ID AL CONTROLADOR USUARIO
 // RECIBIR INFORMACION EN EL CONTROLADOR Y EMCRIPTAR LA NUEVA CONTRASEÑA
 // QUE ESTA SE GUARDE EN LA BASE DE DATOS Y ACTUALIZAR CAMPOS EN RESET_PASSWORD Y TOKEN_PASSWORD
 // NOTIFICACION A USUARIO SOBRE EL ESTADO DEL PROCESO
+//TiendaProductos
