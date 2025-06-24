@@ -222,6 +222,7 @@ if ($tipo == "buscar_movimiento_id") {
         foreach ($arrDetalle as $bien) {
             $id_bien = $bien->id_bien;
             $resBien = $objBien->buscarBienById($id_bien);
+            $arrBienes[]= $resBien;
         }
 
         $arrRespuesta['movimiento'] = $arrMovimiento;
@@ -229,9 +230,10 @@ if ($tipo == "buscar_movimiento_id") {
         $arrRespuesta['amb_destino'] = $arrAmbDestino;
         $arrRespuesta['datos_usuario'] = $arrUsuario;
         $arrRespuesta['datos_ies'] = $arrIes;
+        $arrRespuesta['detalle'] = $arrDetalle;
+        $arrRespuesta['bien'] = $arrayBienes;
         $arrRespuesta['status'] = true;
         $arrRespuesta['msg'] = 'correcto';
-        $arrRespuesta['detalle'] = $arrDetalle;
 
     }
     echo json_encode($arrRespuesta);
