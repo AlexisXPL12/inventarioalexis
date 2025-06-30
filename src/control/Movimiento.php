@@ -222,7 +222,7 @@ if ($tipo == "buscar_movimiento_id") {
         foreach ($arrDetalle as $bien) {
             $id_bien = $bien->id_bien;
             $resBien = $objBien->buscarBienById($id_bien);
-            $arrBienes[]= $resBien;
+            $arrayBienes[] = array_merge((array)$bien,(array)$resBien);
         }
 
         $arrRespuesta['movimiento'] = $arrMovimiento;
