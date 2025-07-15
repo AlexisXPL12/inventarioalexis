@@ -53,7 +53,7 @@ $fechaFormateada = $fechaMovimiento->format($fechaOriginal);
 $contenido_pdf = '
 <h2 style="text-align:center; text-transform:uppercase; color:#2c3e50;">REPORTE DE MOVIMIENTOS</h2>
 
-<div style="margin-bottom:15px;">
+<div style="margin: bottom 15px;">
     <p style="margin:6px 0;"><b>ENTIDAD</b>: DIRECCIÓN REGIONAL DE EDUCACIÓN - AYACUCHO</p>
     <p style="margin:6px 0;"><b>ÁREA</b>: OFICINA DE ADMINISTRACIÓN</p>
     <p style="margin:6px 0;"><b>ORIGEN</b>: ' . $respuesta->amb_origen->codigo . ' - ' . $respuesta->amb_origen->detalle . '</p>
@@ -104,8 +104,7 @@ $contenido_pdf .= '
 
 <p style="text-align:right; margin-top:35px; font-size:10px;">Ayacucho, ' . $fechaFormateada . '</p>
 
-<br><br><br>
-<table style="width:100%;">
+<table style="width:100%; padding: 30px 10px 10px 10px">
     <tr>
         <td style="text-align:center;">__________________________<br>ENTREGUÉ CONFORME</td>
         <td style="text-align:center;">__________________________<br>RECIBÍ CONFORME</td>
@@ -123,8 +122,8 @@ require_once('./vendor/tecnickcom/tcpdf/tcpdf.php');
 class MYPDF extends TCPDF {
     // Header
     public function Header() {
-        $this->Image('./src/assets/dr1.webp', 15, 10, 30);
-        $this->Image('./src/assets/drea.webp', 175, 10, 30);
+        $this->Image('./src/assets/drea.webp', 15, 10, 30);
+        $this->Image('./src/assets/dr3.jpg', 165, 5, 35);
         $this->SetY(12);
         $this->SetFont('helvetica', 'B', 10);
         $this->Cell(0, 5, 'GOBIERNO REGIONAL DE AYACUCHO', 0, 1, 'C');
@@ -143,14 +142,13 @@ class MYPDF extends TCPDF {
 }
 
 // Crear nueva instancia del PDF
-$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf = new MYPDF();
 
 // Configuración básica
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('Alexis Valdivia');
 $pdf->SetTitle('Reporte de Movimientos');
 
-// Márgenes: izquierda, top, derecha
 $pdf->SetMargins(15, 40, 15); // Ajustado el margen superior
 $pdf->SetAutoPageBreak(TRUE, 30); // Espacio desde el pie
 $pdf->SetFont('helvetica', '', 10);
