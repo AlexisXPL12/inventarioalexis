@@ -47,7 +47,6 @@ $fechaMovimiento = new IntlDateFormatter(
 $fechaOriginal = new DateTime($respuesta->movimiento->fecha_registro, new DateTimeZone('America/Lima'));
 $fechaFormateada = $fechaMovimiento->format($fechaOriginal);
 
-// Comenzar contenido HTML para el PDF
 $contenido_pdf = '
 <!DOCTYPE html>
 <html lang="es">
@@ -56,22 +55,23 @@ $contenido_pdf = '
     <title>Reporte de Movimientos</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
+            font-family: "Helvetica", Arial, sans-serif;
+            font-size: 13px;
+            color: #333;
         }
 
         h2 {
             text-align: center;
             text-transform: uppercase;
+            color: #2c3e50;
         }
 
         .info {
-            margin-top: 30px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .info p {
-            margin: 8px 0;
+            margin: 6px 0;
         }
 
         .bold {
@@ -85,43 +85,27 @@ $contenido_pdf = '
         }
 
         th {
-            background-color: #f2f2f2;
-            border: 1px solid #999;
+            background-color: #eaeaea;
+            border: 1px solid #ccc;
             padding: 8px;
-            font-size: 14px;
+            font-size: 13px;
+            color: #2c3e50;
         }
 
         td {
-            border: 1px solid #999;
+            border: 1px solid #ccc;
             padding: 6px;
-            font-size: 13px;
+            font-size: 12.5px;
         }
 
         tr:nth-child(even) {
-            background-color: #fafafa;
+            background-color: #f9f9f9;
         }
 
         .date {
             text-align: right;
-            margin-top: 30px;
-            font-size: 14px;
-        }
-
-        .signature {
-            margin-top: 60px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .signature div {
-            text-align: center;
-            width: 45%;
-        }
-
-        hr {
-            margin-top: 40px;
-            border: 0;
-            border-top: 1px solid #aaa;
+            margin-top: 35px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -152,7 +136,7 @@ $contenido_pdf = '
         <tbody>';
 
 if (empty($respuesta->detalle)) {
-    $contenido_pdf .= '<tr><td colspan="7">No se encontraron bienes registrados para este movimiento.</td></tr>';
+    $contenido_pdf .= '<tr><td colspan="7" style="text-align:center;">No se encontraron bienes registrados para este movimiento.</td></tr>';
 } else {
     $contador = 1;
     foreach ($respuesta->detalle as $bien) {
@@ -168,7 +152,6 @@ if (empty($respuesta->detalle)) {
     }
 }
 
-
 $contenido_pdf .= '
         </tbody>
     </table>
@@ -177,13 +160,13 @@ $contenido_pdf .= '
         Ayacucho, ' . $fechaFormateada . '
     </div>
 
-    <div class="signature">
-        <div>
-            <p>------------------------------</p>
+    <div class="signature" style="margin-top: 60px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="text-align: center; width: 45%;">
+            <p>__________________________</p>
             <p>ENTREGUÉ CONFORME</p>
         </div>
-        <div>
-            <p>------------------------------</p>
+        <div style="text-align: center; width: 45%;">
+            <p>__________________________</p>
             <p>RECIBÍ CONFORME</p>
         </div>
     </div>
@@ -192,23 +175,61 @@ $contenido_pdf .= '
 </html>';
 
 
+
 // ----------------------------
 // GENERAR EL PDF CON TCPDF
 // ----------------------------
 require_once('./vendor/tecnickcom/tcpdf/tcpdf.php');
 
-$pdf = new TCPDF();
+class MYPDF extends TCPDF {
+    // Header personalizado
+    public function Header() {
+        // Establecer posición vertical desde el borde superior
+        $this->SetY(10);
+
+        // Agregar imágenes (logotipos)
+        $this->Image('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT72gURRvO9EMLPg4EM7_0Ttl2u52Xigbe6IA&s', 15, 10, 20, '', '', '', '', false, 300);
+        $this->Image('https://dreayacucho.gob.pe/storage/directory/ZOOEA2msQPiXYkJFx4JLjpoREncLFn-metabG9nby5wbmc=-.webp', 175, 10, 20, '', '', '', '', false, 300);
+
+        // Texto centrado
+        $this->SetFont('helvetica', 'B', 10);
+        $this->SetY(12);
+        $this->Cell(0, 5, 'GOBIERNO REGIONAL DE AYACUCHO', 0, 1, 'C');
+        $this->Cell(0, 5, 'DIRECCIÓN REGIONAL DE EDUCACIÓN DE AYACUCHO', 0, 1, 'C');
+        $this->Cell(0, 5, 'DIRECCIÓN DE ADMINISTRACIÓN', 0, 1, 'C');
+    }
+
+    // Footer personalizado
+    public function Footer() {
+        $this->SetY(-28); // Posición desde el fondo
+        $this->SetFont('helvetica', '', 8);
+        
+        $this->Cell(0, 5, 'www.dreaya.gob.pe', 0, 1, 'R', 0, 'http://www.dreaya.gob.pe');
+        $this->Cell(0, 5, 'Jr. 28 de Julio N° 383 – Huamanga', 0, 1, 'R');
+        $this->Cell(0, 5, '(066) 31-1395 Anexo 58001', 0, 1, 'R');
+    }
+}
+
+// Crear nueva instancia del PDF personalizado
+$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+// Configuración básica
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('Alexis Valdivia');
 $pdf->SetTitle('Reporte de Movimientos');
-$pdf->SetMargins(15, 20, 15);
-$pdf->SetAutoPageBreak(TRUE, 20);
+
+// Márgenes: izquierda, top, derecha
+$pdf->SetMargins(15, 10, 15); // Ajustado el margen superior
+$pdf->SetAutoPageBreak(TRUE, 35); // Espacio desde el pie
 $pdf->SetFont('helvetica', '', 10);
+
+// Añadir una página
 $pdf->AddPage();
 
-// Escribir HTML al PDF
+// Escribir HTML
 $pdf->writeHTML($contenido_pdf, true, false, true, false, '');
 
+// Salida del PDF
 $pdf->Output('reporte_movimiento.pdf', 'I');
 //============================================================+
 // END OF FILE
