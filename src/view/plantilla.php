@@ -54,12 +54,12 @@ $vistas_sin_encabezado_pie = [
     'imprimir-movimiento',
     'reporte-bienes',
     'imprimir-bienes',
-    'reporte-intitucion',
-    'imprimir-institucion',
-    'reporte-usuario',
-    'imprimir-usuario',
-    'reporte-ambiente',
-    'imprimir-ambiente',
+    'reporte-instituciones',
+    'imprimir-instituciones',
+    'reporte-usuarios',
+    'imprimir-usuarios',
+    'reporte-ambientes',
+    'imprimir-ambientes',
     'imprimir-movimientosg'
 ];
 

@@ -46,6 +46,52 @@ if ($tipo == "listar") {
     }
     echo json_encode($arr_Respuesta);
 }
+if ($tipo == "listar_movimientos_ordenados_tabla_e") {
+    $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
+    if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
+        $ies = $_POST['ies'];
+        $pagina = $_POST['pagina'];
+        $cantidad_mostrar = $_POST['cantidad_mostrar'];
+        $busqueda_tabla_amb_origen = $_POST['busqueda_tabla_amb_origen'];
+        $busqueda_tabla_amb_destino = $_POST['busqueda_tabla_amb_destino'];
+        $busqueda_fecha_desde = $_POST['busqueda_fecha_desde'];
+        $busqueda_fecha_hasta = $_POST['busqueda_fecha_hasta'];
+        
+        $arr_Respuesta = array('status' => false, 'contenido' => '');
+        
+        // Usar el método que ya tienes con JOINs para obtener toda la información
+        $arr_Movimientos = $objMovimiento->buscarMovimientoConDetalles_tabla_filtro($busqueda_tabla_amb_origen, $busqueda_tabla_amb_destino, $busqueda_fecha_desde, $busqueda_fecha_hasta, $ies);
+        
+        $arr_contenido = [];
+        
+        if (!empty($arr_Movimientos)) {
+            for ($i = 0; $i < count($arr_Movimientos); $i++) {
+                $arr_contenido[$i] = (object) [];
+                $arr_contenido[$i]->id = $arr_Movimientos[$i]->id;
+                $arr_contenido[$i]->id_ambiente_origen = $arr_Movimientos[$i]->id_ambiente_origen;
+                $arr_contenido[$i]->id_ambiente_destino = $arr_Movimientos[$i]->id_ambiente_destino;
+                $arr_contenido[$i]->id_usuario_registro = $arr_Movimientos[$i]->id_usuario_registro;
+                $arr_contenido[$i]->fecha_registro = $arr_Movimientos[$i]->fecha_registro;
+                $arr_contenido[$i]->descripcion = $arr_Movimientos[$i]->descripcion;
+                $arr_contenido[$i]->id_ies = $arr_Movimientos[$i]->id_ies;
+                
+                // Ahora incluir los nombres obtenidos del JOIN
+                $arr_contenido[$i]->ambiente_origen = $arr_Movimientos[$i]->ambiente_origen ?? '';
+                $arr_contenido[$i]->ambiente_destino = $arr_Movimientos[$i]->ambiente_destino ?? '';
+                $arr_contenido[$i]->usuario_registro = $arr_Movimientos[$i]->usuario_registro ?? '';
+                $arr_contenido[$i]->institucion = $arr_Movimientos[$i]->institucion ?? '';
+                $arr_contenido[$i]->bienes_involucrados = $arr_Movimientos[$i]->bienes_involucrados ?? '';
+                
+                $opciones = '<button type="button" title="Ver Detalle" class="btn btn-info waves-effect waves-light" data-toggle="modal" data-target=".modal_detalle' . $arr_Movimientos[$i]->id . '"><i class="fa fa-eye"></i></button>';
+                $arr_contenido[$i]->options = $opciones;
+            }
+            $arr_Respuesta['total'] = count($arr_Movimientos);
+            $arr_Respuesta['status'] = true;
+            $arr_Respuesta['contenido'] = $arr_contenido;
+        }
+    }
+    echo json_encode($arr_Respuesta);
+}
 if ($tipo == "listar_movimientos_ordenados_tabla") {
     $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
     if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {

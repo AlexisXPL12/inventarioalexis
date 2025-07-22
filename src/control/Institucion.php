@@ -85,6 +85,56 @@ if ($tipo == "listar_instituciones") {
     }
     echo json_encode($arr_Respuesta);
 }
+if ($tipo == "listar_instituciones_ordenados_tabla") {
+    $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
+    
+    if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
+        $pagina = $_POST['pagina'];
+        $cantidad_mostrar = $_POST['cantidad_mostrar'];
+        $busqueda_tabla_nombre = $_POST['busqueda_tabla_nombre'];
+        $busqueda_tabla_codigo = $_POST['busqueda_tabla_codigo'];
+        $busqueda_tabla_ruc = $_POST['busqueda_tabla_ruc'];
+        
+        // respuesta
+        $arr_Respuesta = array('status' => false, 'contenido' => '');
+        
+        $busqueda_filtro = $objInstitucion->buscarInstituciones_tabla_filtro($busqueda_tabla_nombre, $busqueda_tabla_codigo, $busqueda_tabla_ruc);
+        $arr_Instituciones = $objInstitucion->buscarInstituciones_tabla($pagina, $cantidad_mostrar, $busqueda_tabla_nombre, $busqueda_tabla_codigo, $busqueda_tabla_ruc);
+        
+        $arr_contenido = [];
+        
+        if (!empty($arr_Instituciones)) {
+            // recorremos el array para agregar la información completa
+            for ($i = 0; $i < count($arr_Instituciones); $i++) {
+                // definimos el elemento como objeto
+                $arr_contenido[$i] = (object) [];
+                
+                // agregamos solo la información que se desea enviar a la vista
+                $arr_contenido[$i]->id = $arr_Instituciones[$i]->id;
+                $arr_contenido[$i]->cod_modular = $arr_Instituciones[$i]->cod_modular;
+                $arr_contenido[$i]->ruc = $arr_Instituciones[$i]->ruc;
+                $arr_contenido[$i]->nombre = $arr_Instituciones[$i]->nombre;
+                $arr_contenido[$i]->beneficiario = $arr_Instituciones[$i]->beneficiario;
+                $arr_contenido[$i]->nombre_beneficiario = $arr_Instituciones[$i]->nombre_beneficiario ?? '';
+                $arr_contenido[$i]->correo_beneficiario = $arr_Instituciones[$i]->correo_beneficiario ?? '';
+                $arr_contenido[$i]->telefono_beneficiario = $arr_Instituciones[$i]->telefono_beneficiario ?? '';
+                $arr_contenido[$i]->total_ambientes = $arr_Instituciones[$i]->total_ambientes ?? 0;
+                $arr_contenido[$i]->total_bienes = $arr_Instituciones[$i]->total_bienes ?? 0;
+                
+                $opciones = '<button type="button" title="Ver Detalles" class="btn btn-info waves-effect waves-light" data-toggle="modal" data-target=".modal_ver' . $arr_Instituciones[$i]->id . '"><i class="fa fa-eye"></i></button>';
+                $opciones .= ' <button type="button" title="Editar" class="btn btn-primary waves-effect waves-light" data-toggle="modal" data-target=".modal_editar' . $arr_Instituciones[$i]->id . '"><i class="fa fa-edit"></i></button>';
+                $opciones .= ' <button type="button" title="Reporte de Bienes" class="btn btn-success waves-effect waves-light" onclick="generarReporteBienes(' . $arr_Instituciones[$i]->id . ')"><i class="fa fa-file-excel"></i></button>';
+                
+                $arr_contenido[$i]->options = $opciones;
+            }
+            
+            $arr_Respuesta['total'] = count($busqueda_filtro);
+            $arr_Respuesta['status'] = true;
+            $arr_Respuesta['contenido'] = $arr_contenido;
+        }
+    }
+    echo json_encode($arr_Respuesta);
+}
 if ($tipo == "registrar") {
     $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
     if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {

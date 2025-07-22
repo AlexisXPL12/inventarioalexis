@@ -36,10 +36,10 @@
         <div class="card">
             <div class="card-body">
                 <!-- Botones de Excel y PDF -->
-                <a href="<?= BASE_URL ?>reporte-ambiente" class="btn btn-success waves-effect waves-light">
+                <a href="<?= BASE_URL ?>reporte-ambientes" class="btn btn-success waves-effect waves-light">
                     <i class="fa fa-file-excel"></i> Exportar a Excel
                 </a>
-                <a href="<?= BASE_URL ?>imprimir-ambiente" class="btn btn-danger waves-effect waves-light">
+                <a href="<?= BASE_URL ?>imprimir-ambientes" class="btn btn-danger waves-effect waves-light">
                     <i class="fa fa-file-pdf"></i> Exportar a PDF
                 </a>
                 <h4 class="card-title">Resultados de Búsqueda</h4>

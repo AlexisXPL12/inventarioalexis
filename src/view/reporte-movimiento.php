@@ -6,15 +6,17 @@ $curl = curl_init();
 $postData = array(
     'sesion' => $_SESSION['sesion_id'],
     'token' => $_SESSION['sesion_token'],
+    'ies' => $_SESSION['ies'] ?? 1, // ID de la institución desde la sesión
     'pagina' => 1,
     'cantidad_mostrar' => 10000, // Gran cantidad para obtener todos los registros
-    'busqueda_tabla_nombre' => '',
-    'busqueda_tabla_codigo' => '',
-    'busqueda_tabla_ruc' => ''
+    'busqueda_tabla_amb_origen' => '',
+    'busqueda_tabla_amb_destino' => '',
+    'busqueda_fecha_desde' => '',
+    'busqueda_fecha_hasta' => ''
 );
 
 curl_setopt_array($curl, array(
-    CURLOPT_URL => BASE_URL_SERVER . "src/control/Institucion.php?tipo=listar_instituciones_ordenados_tabla",
+    CURLOPT_URL => BASE_URL_SERVER . "src/control/Movimiento.php?tipo=listar_movimientos_ordenados_tabla_e",
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_ENCODING => "",
@@ -44,7 +46,7 @@ if ($err) {
 $responseData = json_decode($response, true);
 
 if (!$responseData || !$responseData['status']) {
-    echo "Error: No se pudieron obtener los datos de instituciones.";
+    echo "Error: No se pudieron obtener los datos de movimientos.";
     exit;
 }
 
@@ -62,24 +64,22 @@ $spreadsheet = new Spreadsheet();
 $spreadsheet->getProperties()
     ->setCreator("Sistema de Gestión de Bienes")
     ->setLastModifiedBy("Sistema de Gestión de Bienes")
-    ->setTitle("Reporte de Instituciones")
-    ->setDescription("Listado completo de instituciones registradas en el sistema");
+    ->setTitle("Reporte de Movimientos")
+    ->setDescription("Listado completo de movimientos registrados en el sistema");
 
 $activeWorksheet = $spreadsheet->getActiveSheet();
-$activeWorksheet->setTitle('Reporte de Instituciones');
+$activeWorksheet->setTitle('Reporte de Movimientos');
 
 // Definir los encabezados de las columnas
 $headers = [
     'A' => 'ID',
-    'B' => 'Código Modular',
-    'C' => 'RUC',
-    'D' => 'Nombre de la Institución',
-    'E' => 'ID Beneficiario',
-    'F' => 'Nombre Beneficiario',
-    'G' => 'Correo Beneficiario',
-    'H' => 'Teléfono Beneficiario',
-    'I' => 'Total de Ambientes',
-    'J' => 'Total de Bienes'
+    'B' => 'Ambiente Origen',
+    'C' => 'Ambiente Destino',
+    'D' => 'Usuario Registro',
+    'E' => 'Fecha Registro',
+    'F' => 'Descripción',
+    'G' => 'Institución',
+    'H' => 'Bienes Involucrados'
 ];
 
 // Configurar encabezados con mejor formato
@@ -107,29 +107,20 @@ foreach ($headers as $columna => $titulo) {
         ->getStartColor()->setRGB('E8E8E8');
 }
 
-// Llenar los datos de las instituciones con mejor formato
-$instituciones = $responseData['contenido'] ?? [];
+// Llenar los datos de los movimientos con mejor formato
+$movimientos = $responseData['contenido'] ?? [];
 $fila = 2; // Comenzar desde la fila 2 (después de los encabezados)
 
-foreach ($instituciones as $institucion) {
-    $activeWorksheet->setCellValue('A' . $fila, $institucion['id'] ?? '');
-    $activeWorksheet->setCellValue('B' . $fila, $institucion['cod_modular'] ?? '');
-    $activeWorksheet->setCellValue('C' . $fila, $institucion['ruc'] ?? '');
-    $activeWorksheet->setCellValue('D' . $fila, $institucion['nombre'] ?? '');
-    $activeWorksheet->setCellValue('E' . $fila, $institucion['beneficiario'] ?? '');
-    $activeWorksheet->setCellValue('F' . $fila, $institucion['nombre_beneficiario'] ?? '');
-    $activeWorksheet->setCellValue('G' . $fila, $institucion['correo_beneficiario'] ?? '');
-    $activeWorksheet->setCellValue('H' . $fila, $institucion['telefono_beneficiario'] ?? '');
-    
-    // Formatear números
-    $totalAmbientes = intval($institucion['total_ambientes'] ?? 0);
-    $totalBienes = intval($institucion['total_bienes'] ?? 0);
-    
-    $activeWorksheet->setCellValue('I' . $fila, $totalAmbientes);
-    $activeWorksheet->setCellValue('J' . $fila, $totalBienes);
-    
-    $activeWorksheet->getStyle('I' . $fila)->getNumberFormat()->setFormatCode('#,##0');
-    $activeWorksheet->getStyle('J' . $fila)->getNumberFormat()->setFormatCode('#,##0');
+foreach ($movimientos as $movimiento) {
+    // Usar los nombres obtenidos del controlador corregido
+    $activeWorksheet->setCellValue('A' . $fila, $movimiento['id'] ?? '');
+    $activeWorksheet->setCellValue('B' . $fila, $movimiento['ambiente_origen'] ?? 'N/A');
+    $activeWorksheet->setCellValue('C' . $fila, $movimiento['ambiente_destino'] ?? 'N/A');
+    $activeWorksheet->setCellValue('D' . $fila, $movimiento['usuario_registro'] ?? 'N/A');
+    $activeWorksheet->setCellValue('E' . $fila, $movimiento['fecha_registro'] ?? '');
+    $activeWorksheet->setCellValue('F' . $fila, $movimiento['descripcion'] ?? '');
+    $activeWorksheet->setCellValue('G' . $fila, $movimiento['institucion'] ?? 'N/A');
+    $activeWorksheet->setCellValue('H' . $fila, $movimiento['bienes_involucrados'] ?? 'Sin bienes');
     
     // Aplicar formato a las celdas de datos
     foreach ($headers as $columna => $titulo) {
@@ -142,7 +133,7 @@ foreach ($instituciones as $institucion) {
             ->setSize(10);
         
         // Alineación específica por columna
-        if ($columna == 'A' || $columna == 'E' || $columna == 'I' || $columna == 'J') {
+        if ($columna == 'A') {
             $activeWorksheet->getStyle($columna . $fila)->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
         } else {
@@ -159,15 +150,13 @@ foreach ($instituciones as $institucion) {
 
 // Ajustar el ancho de las columnas de forma específica
 $activeWorksheet->getColumnDimension('A')->setWidth(8);   // ID
-$activeWorksheet->getColumnDimension('B')->setWidth(18);  // Código Modular
-$activeWorksheet->getColumnDimension('C')->setWidth(15);  // RUC
-$activeWorksheet->getColumnDimension('D')->setWidth(40);  // Nombre Institución
-$activeWorksheet->getColumnDimension('E')->setWidth(12);  // ID Beneficiario
-$activeWorksheet->getColumnDimension('F')->setWidth(30);  // Nombre Beneficiario
-$activeWorksheet->getColumnDimension('G')->setWidth(35);  // Correo
-$activeWorksheet->getColumnDimension('H')->setWidth(15);  // Teléfono
-$activeWorksheet->getColumnDimension('I')->setWidth(12);  // Total Ambientes
-$activeWorksheet->getColumnDimension('J')->setWidth(12);  // Total Bienes
+$activeWorksheet->getColumnDimension('B')->setWidth(25);  // Ambiente Origen
+$activeWorksheet->getColumnDimension('C')->setWidth(25);  // Ambiente Destino
+$activeWorksheet->getColumnDimension('D')->setWidth(20);  // Usuario Registro
+$activeWorksheet->getColumnDimension('E')->setWidth(18);  // Fecha Registro
+$activeWorksheet->getColumnDimension('F')->setWidth(40);  // Descripción
+$activeWorksheet->getColumnDimension('G')->setWidth(25);  // Institución
+$activeWorksheet->getColumnDimension('H')->setWidth(40);  // Bienes Involucrados (aumenté el ancho)
 
 // Configurar altura de filas
 $activeWorksheet->getDefaultRowDimension()->setRowHeight(20);
@@ -175,8 +164,8 @@ $activeWorksheet->getRowDimension(1)->setRowHeight(25); // Fila de encabezados m
 
 // Agregar información adicional
 $filaInfo = $fila + 2;
-$activeWorksheet->setCellValue('A' . $filaInfo, 'Total de instituciones registradas:');
-$activeWorksheet->setCellValue('B' . $filaInfo, count($instituciones));
+$activeWorksheet->setCellValue('A' . $filaInfo, 'Total de movimientos registrados:');
+$activeWorksheet->setCellValue('B' . $filaInfo, count($movimientos));
 $activeWorksheet->getStyle('A' . $filaInfo)->getFont()->setBold(true);
 $activeWorksheet->getStyle('B' . $filaInfo)->getFont()->setBold(true);
 
@@ -185,29 +174,9 @@ $activeWorksheet->setCellValue('A' . $filaInfo, 'Fecha de generación:');
 $activeWorksheet->setCellValue('B' . $filaInfo, date('d/m/Y H:i:s'));
 $activeWorksheet->getStyle('A' . $filaInfo)->getFont()->setBold(true);
 
-// Calcular totales generales
-$totalAmbientesGeneral = 0;
-$totalBienesGeneral = 0;
-foreach ($instituciones as $institucion) {
-    $totalAmbientesGeneral += intval($institucion['total_ambientes'] ?? 0);
-    $totalBienesGeneral += intval($institucion['total_bienes'] ?? 0);
-}
-
-$filaInfo++;
-$activeWorksheet->setCellValue('A' . $filaInfo, 'Total general de ambientes:');
-$activeWorksheet->setCellValue('B' . $filaInfo, $totalAmbientesGeneral);
-$activeWorksheet->getStyle('A' . $filaInfo)->getFont()->setBold(true);
-$activeWorksheet->getStyle('B' . $filaInfo)->getFont()->setBold(true);
-
-$filaInfo++;
-$activeWorksheet->setCellValue('A' . $filaInfo, 'Total general de bienes:');
-$activeWorksheet->setCellValue('B' . $filaInfo, $totalBienesGeneral);
-$activeWorksheet->getStyle('A' . $filaInfo)->getFont()->setBold(true);
-$activeWorksheet->getStyle('B' . $filaInfo)->getFont()->setBold(true);
-
 // Configurar headers para descarga directa
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="reporte_instituciones.xlsx"');
+header('Content-Disposition: attachment;filename="reporte_movimientos.xlsx"');
 header('Cache-Control: max-age=0');
 header('Expires: 0');
 header('Pragma: public');
@@ -216,4 +185,3 @@ header('Pragma: public');
 $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
 exit;
-?>

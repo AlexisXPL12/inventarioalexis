@@ -107,6 +107,146 @@ class UsuarioModel
         return $arrRespuesta;
     }
 
+    // Método para el filtro completo (Excel y otros reportes)
+public function buscarUsuariosConDetalles_tabla_filtro($busqueda_nombre, $busqueda_dni, $busqueda_estado)
+{
+    $condicion = " 1=1 ";
+    
+    if (!empty($busqueda_nombre)) {
+        $condicion .= " AND u.nombres_apellidos LIKE '%$busqueda_nombre%'";
+    }
+    if (!empty($busqueda_dni)) {
+        $condicion .= " AND u.dni LIKE '%$busqueda_dni%'";
+    }
+    if ($busqueda_estado !== '' && $busqueda_estado != 'todos') {
+        $condicion .= " AND u.estado = '$busqueda_estado'";
+    }
+    
+    $arrRespuesta = array();
+    $query = "
+        SELECT 
+            u.*,
+            MAX(s.fecha_hora_inicio) AS ultimo_acceso
+        FROM usuarios u
+        LEFT JOIN sesiones s ON u.id = s.id_usuario
+        WHERE $condicion
+        GROUP BY u.id
+        ORDER BY u.fecha_registro DESC
+    ";
+    
+    $respuesta = $this->conexion->query($query);
+    while ($objeto = $respuesta->fetch_object()) {
+        array_push($arrRespuesta, $objeto);
+    }
+    return $arrRespuesta;
+}
 
+// Método para paginación con detalles completos
+public function buscarUsuariosConDetalles_tabla($pagina, $cantidad_mostrar, $busqueda_nombre, $busqueda_dni, $busqueda_estado)
+{
+    $condicion = " 1=1 ";
+    
+    if (!empty($busqueda_nombre)) {
+        $condicion .= " AND u.nombres_apellidos LIKE '%$busqueda_nombre%'";
+    }
+    if (!empty($busqueda_dni)) {
+        $condicion .= " AND u.dni LIKE '%$busqueda_dni%'";
+    }
+    if ($busqueda_estado !== '' && $busqueda_estado != 'todos') {
+        $condicion .= " AND u.estado = '$busqueda_estado'";
+    }
+    
+    $inicio = ($pagina - 1) * $cantidad_mostrar;
+    
+    $arrRespuesta = array();
+    $query = "
+        SELECT 
+            u.*,
+            MAX(s.fecha_hora_inicio) AS ultimo_acceso,
+            COUNT(s.id) AS total_sesiones
+        FROM usuarios u
+        LEFT JOIN sesiones s ON u.id = s.id_usuario
+        WHERE $condicion
+        GROUP BY u.id
+        ORDER BY u.fecha_registro DESC
+        LIMIT $inicio, $cantidad_mostrar
+    ";
+    
+    $respuesta = $this->conexion->query($query);
+    while ($objeto = $respuesta->fetch_object()) {
+        array_push($arrRespuesta, $objeto);
+    }
+    return $arrRespuesta;
+}
+
+// Método para contar total de usuarios con filtros (para paginación)
+public function contarUsuariosConFiltros($busqueda_nombre, $busqueda_dni, $busqueda_estado)
+{
+    $condicion = " 1=1 ";
+    
+    if (!empty($busqueda_nombre)) {
+        $condicion .= " AND nombres_apellidos LIKE '%$busqueda_nombre%'";
+    }
+    if (!empty($busqueda_dni)) {
+        $condicion .= " AND dni LIKE '%$busqueda_dni%'";
+    }
+    if ($busqueda_estado !== '' && $busqueda_estado != 'todos') {
+        $condicion .= " AND estado = '$busqueda_estado'";
+    }
+    
+    $query = "SELECT COUNT(*) as total FROM usuarios WHERE $condicion";
+    $respuesta = $this->conexion->query($query);
+    $objeto = $respuesta->fetch_object();
+    
+    return $objeto->total;
+}
+
+// Método para obtener estadísticas de usuarios
+public function obtenerEstadisticasUsuarios()
+{
+    $arrRespuesta = array();
+    
+    $query = "
+        SELECT 
+            COUNT(*) as total_usuarios,
+            SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END) as usuarios_activos,
+            SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END) as usuarios_inactivos,
+            COUNT(DISTINCT DATE(fecha_registro)) as dias_con_registros
+        FROM usuarios
+    ";
+    
+    $respuesta = $this->conexion->query($query);
+    $objeto = $respuesta->fetch_object();
+    
+    return $objeto;
+}
+
+// Método para obtener usuarios más activos (con más sesiones)
+public function obtenerUsuariosMasActivos($limite = 5)
+{
+    $arrRespuesta = array();
+    
+    $query = "
+        SELECT 
+            u.id,
+            u.nombres_apellidos,
+            u.dni,
+            COUNT(s.id) as total_sesiones,
+            MAX(s.fecha_hora_inicio) as ultimo_acceso
+        FROM usuarios u
+        LEFT JOIN sesiones s ON u.id = s.id_usuario
+        WHERE u.estado = 1
+        GROUP BY u.id
+        ORDER BY total_sesiones DESC, ultimo_acceso DESC
+        LIMIT $limite
+    ";
+    
+    $respuesta = $this->conexion->query($query);
+    while ($objeto = $respuesta->fetch_object()) {
+        array_push($arrRespuesta, $objeto);
+    }
+    
+    return $arrRespuesta;
+}
 
 }

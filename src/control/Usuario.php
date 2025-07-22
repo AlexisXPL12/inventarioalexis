@@ -19,6 +19,89 @@ $objAdmin = new AdminModel();
 $id_sesion = $_POST['sesion'];
 $token = $_POST['token'];
 
+if ($tipo == "listar_usuarios_ordenados_tabla_e") {
+    $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
+    
+    try {
+        if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
+            $ies = $_POST['ies'] ?? 1;
+            $pagina = $_POST['pagina'] ?? 1;
+            $cantidad_mostrar = $_POST['cantidad_mostrar'] ?? 10;
+            $busqueda_nombre = $_POST['busqueda_nombre'] ?? '';
+            $busqueda_dni = $_POST['busqueda_dni'] ?? '';
+            $busqueda_estado = $_POST['busqueda_estado'] ?? '';
+            
+            $arr_Respuesta = array('status' => false, 'contenido' => '', 'msg' => '');
+            
+            // Usar el método para obtener usuarios con filtros
+            $arr_Usuarios = $objUsuario->buscarUsuariosConDetalles_tabla_filtro(
+                $busqueda_nombre, 
+                $busqueda_dni, 
+                $busqueda_estado
+            );
+            
+            $arr_contenido = [];
+            
+            if (!empty($arr_Usuarios)) {
+                for ($i = 0; $i < count($arr_Usuarios); $i++) {
+                    // Crear array en lugar de objeto para mejor compatibilidad
+                    $arr_contenido[$i] = array();
+                    $arr_contenido[$i]['id'] = $arr_Usuarios[$i]->id;
+                    $arr_contenido[$i]['dni'] = $arr_Usuarios[$i]->dni;
+                    $arr_contenido[$i]['nombres_apellidos'] = $arr_Usuarios[$i]->nombres_apellidos;
+                    $arr_contenido[$i]['correo'] = $arr_Usuarios[$i]->correo;
+                    $arr_contenido[$i]['telefono'] = $arr_Usuarios[$i]->telefono;
+                    $arr_contenido[$i]['estado'] = $arr_Usuarios[$i]->estado;
+                    $arr_contenido[$i]['fecha_registro'] = $arr_Usuarios[$i]->fecha_registro;
+                    
+                    // Incluir información de último acceso obtenida del JOIN
+                    $arr_contenido[$i]['ultimo_acceso'] = $arr_Usuarios[$i]->ultimo_acceso ?? 'Sin accesos';
+                    
+                    // Estado texto legible
+                    $estadoTexto = ($arr_Usuarios[$i]->estado == 1) ? 'Activo' : 'Inactivo';
+                    $badgeClass = ($arr_Usuarios[$i]->estado == 1) ? 'badge-success' : 'badge-danger';
+                    
+                    // Formatear fecha de registro para mostrar
+                    $fechaFormateada = '';
+                    if (!empty($arr_Usuarios[$i]->fecha_registro)) {
+                        $fechaFormateada = date('d/m/Y H:i', strtotime($arr_Usuarios[$i]->fecha_registro));
+                    }
+                    
+                    // Opciones para la tabla (botones de acción)
+                    $opciones = '<div class="btn-group" role="group">';
+                    $opciones .= '<button type="button" title="Ver Detalle" class="btn btn-info btn-sm waves-effect waves-light" data-toggle="modal" data-target=".modal_detalle' . $arr_Usuarios[$i]->id . '"><i class="fa fa-eye"></i></button>';
+                    $opciones .= '<button type="button" title="Editar" class="btn btn-warning btn-sm waves-effect waves-light" onclick="editarUsuario(' . $arr_Usuarios[$i]->id . ')"><i class="fa fa-edit"></i></button>';
+                    $opciones .= '</div>';
+                    
+                    $arr_contenido[$i]['options'] = $opciones;
+                    $arr_contenido[$i]['estado_badge'] = '<span class="badge ' . $badgeClass . '">' . $estadoTexto . '</span>';
+                    $arr_contenido[$i]['fecha_registro_formateada'] = $fechaFormateada;
+                }
+                
+                $arr_Respuesta['total'] = count($arr_Usuarios);
+                $arr_Respuesta['status'] = true;
+                $arr_Respuesta['contenido'] = $arr_contenido;
+                $arr_Respuesta['msg'] = 'Usuarios obtenidos correctamente';
+            } else {
+                // Caso cuando no hay usuarios
+                $arr_Respuesta['status'] = true;
+                $arr_Respuesta['contenido'] = [];
+                $arr_Respuesta['total'] = 0;
+                $arr_Respuesta['msg'] = 'No se encontraron usuarios';
+            }
+        } else {
+            $arr_Respuesta['msg'] = 'Sesión inválida o expirada';
+        }
+    } catch (Exception $e) {
+        $arr_Respuesta['status'] = false;
+        $arr_Respuesta['msg'] = 'Error interno del servidor: ' . $e->getMessage();
+    }
+    
+    // Enviar headers apropiados
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($arr_Respuesta, JSON_UNESCAPED_UNICODE);
+}
+
 if ($tipo == 'actualizar_password_reset') {
     $id = $_POST['id'];
     $token_email = $_POST['token'];
