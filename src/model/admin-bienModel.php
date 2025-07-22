@@ -10,7 +10,20 @@ class BienModel
         $this->conexion = new Conexion();
         $this->conexion = $this->conexion->connect();
     }
-    public function registrarBien($ambiente, $cod_patrimonial, $denominacion, $marca, $modelo, $tipo, $color, $serie, $dimensiones, $valor, $situacion, $estado_conservacion, $observaciones, $id_usuario,$id_ingreso)
+
+    public function obtenerBienes()
+    {
+        $query = "SELECT b.*, ai.detalle as ambiente_detalle FROM bienes b JOIN ambientes_institucion ai ON b.id_ambiente = ai.id";
+        $result = $this->conexion->query($query);
+
+        $bienes = [];
+        while ($row = $result->fetch_assoc()) {
+            $bienes[] = $row;
+        }
+
+        return $bienes;
+    }
+    public function registrarBien($ambiente, $cod_patrimonial, $denominacion, $marca, $modelo, $tipo, $color, $serie, $dimensiones, $valor, $situacion, $estado_conservacion, $observaciones, $id_usuario, $id_ingreso)
     {
         $sql = $this->conexion->query("INSERT INTO bienes (id_ingreso_bienes ,id_ambiente,cod_patrimonial, denominacion, marca,modelo,tipo,color,serie,dimensiones,valor,situacion,estado_conservacion,observaciones,usuario_registro ) VALUES ('$id_ingreso','$ambiente', '$cod_patrimonial','$denominacion', '$marca', '$modelo', '$tipo', '$color', '$serie', '$dimensiones', '$valor', '$situacion', '$estado_conservacion', '$observaciones', '$id_usuario')");
         if ($sql) {
@@ -86,6 +99,48 @@ class BienModel
         $arrRespuesta = array();
         $respuesta = $this->conexion->query("SELECT bienes.id, bienes.id_ambiente,bienes.cod_patrimonial ,bienes.denominacion,bienes.marca,bienes.modelo,bienes.tipo,bienes.color,bienes.serie, bienes.dimensiones, bienes.valor, bienes.situacion, bienes.estado_conservacion,bienes.observaciones FROM bienes
             INNER JOIN ambientes_institucion ON bienes.id_ambiente = ambientes_institucion.id AND (ambientes_institucion.id_ies = '$ies') WHERE $condicion  ORDER BY detalle LIMIT $iniciar, $cantidad_mostrar");
+        while ($objeto = $respuesta->fetch_object()) {
+            array_push($arrRespuesta, $objeto);
+        }
+        return $arrRespuesta;
+    }
+    public function listarTodosLosBienes()
+    {
+        $arrRespuesta = array();
+        $query = "
+    SELECT
+    b.id AS bien_id,
+    b.cod_patrimonial,
+    b.denominacion,
+    b.marca,
+    b.modelo,
+    b.tipo,
+    b.color,
+    b.serie,
+    b.dimensiones,
+    b.valor,
+    b.situacion,
+    b.estado_conservacion,
+    b.observaciones,
+    b.fecha_registro,
+    b.estado AS estado_bien,
+    
+    ai.id AS ambiente_id,
+    ai.codigo AS ambiente_codigo,
+    ai.detalle AS ambiente_detalle,
+    ai.otros_detalle,
+    ai.encargado AS ambiente_encargado,
+    
+    u.id AS usuario_id,
+    u.nombres_apellidos AS nombre_usuario,
+    u.dni AS usuario_dni
+FROM bienes b
+LEFT JOIN ambientes_institucion ai ON b.id_ambiente = ai.id
+LEFT JOIN usuarios u ON b.usuario_registro = u.id
+ORDER BY b.fecha_registro ASC;
+
+    ";
+        $respuesta = $this->conexion->query($query);
         while ($objeto = $respuesta->fetch_object()) {
             array_push($arrRespuesta, $objeto);
         }

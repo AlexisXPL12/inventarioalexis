@@ -36,7 +36,7 @@
     <?php date_default_timezone_set('America/Lima');  ?>
     <style>
         /* ============================================
-           SISTEMA DE GESTIÓN - TEMA OSCURO ELEGANTE
+        SISTEMA DE GESTIÓN - TEMA OSCURO ELEGANTE
            ============================================ */
 
         /* Variables CSS para el tema oscuro */
@@ -69,9 +69,9 @@
             --z-background: -1;
             --z-base: 1;
             --z-cards: 10;
-            --z-header: 1000;
+            --z-header: 1200;
             --z-navigation: 1100;
-            --z-dropdown: 1200;
+            --z-dropdown: 1300;
             --z-popup: 10000;
         }
 
@@ -716,110 +716,113 @@
    CORRECCIÓN ESPECÍFICA PARA DROPDOWNS DEL HEADER
    =============================== */
 
-/* Variables de Z-index actualizadas */
-:root {
-    --z-dropdown-header: 1600;  /* MÁS ALTO PARA HEADER */
-    --z-dropdown-nav: 1200;     /* MENOR PARA NAVEGACIÓN */
-}
+        /* Variables de Z-index actualizadas */
+        :root {
+            --z-dropdown-header: 1600;
+            /* MÁS ALTO PARA HEADER */
+            --z-dropdown-nav: 1200;
+            /* MENOR PARA NAVEGACIÓN */
+        }
 
-/* Contenedor del header - CRÍTICO */
-.navbar-header {
-    position: relative !important;
-    overflow: visible !important;
-    z-index: var(--z-header) !important;
-}
+        /* Contenedor del header - CRÍTICO */
+        .navbar-header {
+            position: relative !important;
+            overflow: visible !important;
+            z-index: var(--z-header) !important;
+        }
 
-/* Contenedor de dropdowns del header - SOLUCIÓN PRINCIPAL */
-#page-topbar .d-flex.align-items-center {
-    position: relative !important;
-    z-index: calc(var(--z-header) + 1) !important;
-}
+        /* Contenedor de dropdowns del header - SOLUCIÓN PRINCIPAL */
+        #page-topbar .d-flex.align-items-center {
+            position: relative !important;
+            z-index: calc(var(--z-header) + 1) !important;
+        }
 
-/* DROPDOWN DEL HEADER - Z-INDEX MÁS ALTO */
-#page-topbar .dropdown {
-    position: relative !important;
-    z-index: var(--z-dropdown-header) !important;
-}
+        /* DROPDOWN DEL HEADER - Z-INDEX MÁS ALTO */
+        #page-topbar .dropdown {
+            position: relative !important;
+            z-index: var(--z-dropdown-header) !important;
+        }
 
-#page-topbar .dropdown-menu {
-    background: rgba(30, 41, 59, 0.98) !important;
-    border: 1px solid rgba(96, 165, 250, 0.3) !important;
-    border-radius: 15px !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: blur(25px) !important;
-    padding: 15px 0 !important;
-    margin-top: 12px !important;
-    min-width: 220px !important;
-    max-width: 300px !important;
-    
-    /* POSICIONAMIENTO CRÍTICO */
-    position: absolute !important;
-    top: calc(100% + 5px) !important;
-    right: 0 !important;
-    left: auto !important;
-    
-    /* Z-INDEX MÁS ALTO */
-    z-index: var(--z-dropdown-header) !important;
-    
-    /* Animación mejorada */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
+        #page-topbar .dropdown-menu {
+            background: rgba(30, 41, 59, 0.98) !important;
+            border: 1px solid rgba(96, 165, 250, 0.3) !important;
+            border-radius: 15px !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(25px) !important;
+            padding: 15px 0 !important;
+            margin-top: 12px !important;
+            min-width: 220px !important;
+            max-width: 300px !important;
 
-/* Mostrar dropdown cuando esté activo */
-#page-topbar .dropdown.show .dropdown-menu {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateY(0) !important;
-    display: block !important;
-}
+            /* POSICIONAMIENTO CRÍTICO */
+            position: absolute !important;
+            top: calc(100% + 5px) !important;
+            right: 0 !important;
+            left: auto !important;
 
-/* DROPDOWN DE NAVEGACIÓN - Z-INDEX CORREGIDO */
-.topnav .dropdown-menu {
-    z-index: var(--z-dropdown-nav) !important; /* MENOR QUE HEADER */
-    
-    /* Animación mejorada */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
+            /* Z-INDEX MÁS ALTO */
+            z-index: var(--z-dropdown-header) !important;
 
-.topnav .dropdown.show .dropdown-menu {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateY(0) !important;
-    display: block !important;
-}
+            /* Animación mejorada */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
 
-/* ===============================
+        /* Mostrar dropdown cuando esté activo */
+        #page-topbar .dropdown.show .dropdown-menu {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) !important;
+            display: block !important;
+        }
+
+        /* DROPDOWN DE NAVEGACIÓN - Z-INDEX CORREGIDO */
+        .topnav .dropdown-menu {
+            z-index: var(--z-dropdown-nav) !important;
+            /* MENOR QUE HEADER */
+
+            /* Animación mejorada */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .topnav .dropdown.show .dropdown-menu {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) !important;
+            display: block !important;
+        }
+
+        /* ===============================
    CORRECCIÓN FINAL - FORZAR Z-INDEX
    =============================== */
 
-/* Asegurar que NADA interfiera con los dropdowns del header */
-#page-topbar .dropdown-menu,
-#page-topbar .dropdown-menu.show {
-    z-index: 1600 !important; /* Valor muy alto */
-}
+        /* Asegurar que NADA interfiera con los dropdowns del header */
+        #page-topbar .dropdown-menu,
+        #page-topbar .dropdown-menu.show {
+            z-index: 1600 !important;
+            /* Valor muy alto */
+        }
 
-/* Contenido que NO debe interferir */
-.main-content,
-.container-fluid,
-.row,
-.col-*,
-.card,
-.card:hover {
-    z-index: auto !important;
-}
+        /* Contenido que NO debe interferir */
+        .main-content,
+        .container-fluid,
+        .row,
+        .col-*,
+        .card,
+        .card:hover {
+            z-index: auto !important;
+        }
 
-/* Navegación debe estar por debajo */
-.topnav,
-.topnav .dropdown-menu {
-    z-index: 1100 !important;
-}
-        
+        /* Navegación debe estar por debajo */
+        .topnav,
+        .topnav .dropdown-menu {
+            z-index: 1100 !important;
+        }
     </style>
 </head>
 

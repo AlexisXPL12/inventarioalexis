@@ -49,14 +49,35 @@ if (isset($_SESSION['sesion_id']) && isset($_SESSION['sesion_token'])) {
 if ($reset == "reset-password") {
     $vista = "reset-password";
 }
+$vistas_sin_encabezado_pie = [
+    'reporte-movimiento',
+    'imprimir-movimiento',
+    'reporte-bienes',
+    'imprimir-bienes',
+    'reporte-intitucion',
+    'imprimir-institucion',
+    'reporte-usuario',
+    'imprimir-usuario',
+    'reporte-ambiente',
+    'imprimir-ambiente',
+    'imprimir-movimientosg'
+];
+
 if ($vista == "login" || $vista == "404" || $vista == "reset-password") {
     require_once "./src/view/" . $vista . ".php";
 } else {
-    if ($vista != './src/view/imprimir-movimiento.php' && $vista != './src/view/reporte-bienes.php') {
+    // Quitamos la ruta si existe y nos quedamos solo con el nombre del archivo sin extensión
+    $nombre_vista = basename($vista, ".php");
+
+    // Si la vista NO está en la lista, incluimos el header
+    if (!in_array($nombre_vista, $vistas_sin_encabezado_pie)) {
         include "./src/view/include/header.php";
     }
+
     include $vista;
-    if ($vista != './src/view/imprimir-movimiento.php' && $vista != './src/view/reporte-bienes.php') {
+
+    // Si la vista NO está en la lista, incluimos el footer
+    if (!in_array($nombre_vista, $vistas_sin_encabezado_pie)) {
         include "./src/view/include/footer.php";
     }
 } 
