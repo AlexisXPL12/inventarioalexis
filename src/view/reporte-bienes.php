@@ -1,16 +1,21 @@
 <?php
-require './vendor/autoload.php';
-
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
-// Configuración inicial
-date_default_timezone_set('America/Lima');
-
-// Obtener los datos desde el backend por cURL
+// =================== INICIA cURL ===================
 $curl = curl_init();
+
+// Preparar los datos POST para la API
+$postData = array(
+    'sesion' => $_SESSION['sesion_id'],
+    'token' => $_SESSION['sesion_token'],
+    'ies' => $_SESSION['ies'] ?? 1, // ID de la institución desde la sesión
+    'pagina' => 1,
+    'cantidad_mostrar' => 10000, // Gran cantidad para obtener todos los registros
+    'busqueda_tabla_codigo' => '',
+    'busqueda_tabla_ambiente' => '',
+    'busqueda_tabla_denominacion' => ''
+);
+
 curl_setopt_array($curl, array(
-    CURLOPT_URL => BASE_URL_SERVER . "src/control/Movimiento.php?tipo=listar_todos_bienes&sesion=" . $_SESSION['sesion_id'] . "&token=" . $_SESSION['sesion_token'],
+    CURLOPT_URL => BASE_URL_SERVER . "src/control/Bien.php?tipo=listar_bienes_ordenados_tabla",
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_ENCODING => "",
@@ -18,7 +23,9 @@ curl_setopt_array($curl, array(
     CURLOPT_TIMEOUT => 30,
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
     CURLOPT_CUSTOMREQUEST => "POST",
+    CURLOPT_POSTFIELDS => http_build_query($postData),
     CURLOPT_HTTPHEADER => array(
+        "Content-Type: application/x-www-form-urlencoded",
         "x-rapidapi-host: " . BASE_URL_SERVER,
         "x-rapidapi-key: XXXX"
     ),
@@ -27,62 +34,177 @@ curl_setopt_array($curl, array(
 $response = curl_exec($curl);
 $err = curl_error($curl);
 curl_close($curl);
+// =================== FIN cURL ===================
 
 if ($err) {
-    die("Error en cURL: " . $err);
-} else {
-    $respuesta = json_decode($response, true);
-    // Verificar errores en la decodificación JSON
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        die("Error al decodificar JSON: " . json_last_error_msg() . ". Respuesta: " . $response);
-    }
+    echo "cURL Error #:" . $err;
+    exit;
 }
 
-// Crear una nueva instancia de Spreadsheet
+// Decodificar la respuesta JSON
+$responseData = json_decode($response, true);
+
+if (!$responseData || !$responseData['status']) {
+    echo "Error: No se pudieron obtener los datos de bienes.";
+    exit;
+}
+
+require './vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+
+// Crear un nuevo documento
 $spreadsheet = new Spreadsheet();
-$sheet = $spreadsheet->getActiveSheet();
 $spreadsheet->getProperties()
-    ->setCreator("Alexis Valdivia")
-    ->setLastModifiedBy("Alexis Valdivia")
+    ->setCreator("Sistema de Gestión de Bienes")
+    ->setLastModifiedBy("Sistema de Gestión de Bienes")
     ->setTitle("Reporte de Bienes")
-    ->setDescription("Reporte de bienes generado automáticamente");
+    ->setDescription("Listado completo de bienes registrados en el sistema");
 
-// Configurar los encabezados
-$sheet->setCellValue('A1', 'ITEM');
-$sheet->setCellValue('B1', 'CÓDIGO PATRIMONIAL');
-$sheet->setCellValue('C1', 'DENOMINACIÓN');
-$sheet->setCellValue('D1', 'MARCA');
-$sheet->setCellValue('E1', 'MODELO');
-$sheet->setCellValue('F1', 'AMBIENTE');
+$activeWorksheet = $spreadsheet->getActiveSheet();
+$activeWorksheet->setTitle('Reporte de Bienes');
 
-// Verificar si hay contenido en la respuesta
-if (isset($respuesta['contenido']) && !empty($respuesta['contenido'])) {
-    $fila = 2; // Comenzar desde la segunda fila
-    foreach ($respuesta['contenido'] as $i => $bien) {
-        $sheet->setCellValue('A' . $fila, $i + 1);
-        $sheet->setCellValue('B' . $fila, $bien['cod_patrimonial']);
-        $sheet->setCellValue('C' . $fila, $bien['denominacion']);
-        $sheet->setCellValue('D' . $fila, $bien['marca']);
-        $sheet->setCellValue('E' . $fila, $bien['modelo']);
-        $sheet->setCellValue('F' . $fila, $bien['ambiente_detalle']);
-        $fila++;
-    }
-} else {
-    $sheet->setCellValue('A2', 'No se encontraron bienes registrados.');
+// Definir los encabezados de las columnas
+$headers = [
+    'A' => 'ID',
+    'B' => 'Código Patrimonial',
+    'C' => 'Denominación',
+    'D' => 'Marca',
+    'E' => 'Modelo',
+    'F' => 'Tipo',
+    'G' => 'Color',
+    'H' => 'Serie',
+    'I' => 'Dimensiones',
+    'J' => 'Valor',
+    'K' => 'Situación',
+    'L' => 'Estado de Conservación',
+    'M' => 'Observaciones',
+    'N' => 'ID Ambiente'
+];
+
+// Configurar encabezados con mejor formato
+$fila = 1;
+foreach ($headers as $columna => $titulo) {
+    $activeWorksheet->setCellValue($columna . $fila, $titulo);
+    
+    // Aplicar estilo a los encabezados
+    $activeWorksheet->getStyle($columna . $fila)->getFont()
+        ->setBold(true)
+        ->setSize(12)
+        ->setName('Arial');
+    
+    $activeWorksheet->getStyle($columna . $fila)->getAlignment()
+        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+        ->setVertical(Alignment::VERTICAL_CENTER);
+    
+    $activeWorksheet->getStyle($columna . $fila)->getBorders()
+        ->getAllBorders()
+        ->setBorderStyle(Border::BORDER_MEDIUM);
+    
+    // Color de fondo para encabezados
+    $activeWorksheet->getStyle($columna . $fila)->getFill()
+        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+        ->getStartColor()->setRGB('E8E8E8');
 }
 
-// Crear el writer para guardar el archivo Excel
-$writer = new Xlsx($spreadsheet);
+// Llenar los datos de los bienes con mejor formato
+$bienes = $responseData['contenido'] ?? [];
+$fila = 2; // Comenzar desde la fila 2 (después de los encabezados)
 
-// Guardar el archivo Excel
-$filename = 'reporte_bienes.xlsx';
-$writer->save($filename);
+foreach ($bienes as $bien) {
+    $activeWorksheet->setCellValue('A' . $fila, $bien['id'] ?? '');
+    $activeWorksheet->setCellValue('B' . $fila, $bien['cod_patrimonial'] ?? '');
+    $activeWorksheet->setCellValue('C' . $fila, $bien['denominacion'] ?? '');
+    $activeWorksheet->setCellValue('D' . $fila, $bien['marca'] ?? '');
+    $activeWorksheet->setCellValue('E' . $fila, $bien['modelo'] ?? '');
+    $activeWorksheet->setCellValue('F' . $fila, $bien['tipo'] ?? '');
+    $activeWorksheet->setCellValue('G' . $fila, $bien['color'] ?? '');
+    $activeWorksheet->setCellValue('H' . $fila, $bien['serie'] ?? '');
+    $activeWorksheet->setCellValue('I' . $fila, $bien['dimensiones'] ?? '');
+    
+    // Formatear valor como número
+    $valor = floatval($bien['valor'] ?? 0);
+    $activeWorksheet->setCellValue('J' . $fila, $valor);
+    $activeWorksheet->getStyle('J' . $fila)->getNumberFormat()
+        ->setFormatCode('#,##0.00');
+    
+    $activeWorksheet->setCellValue('K' . $fila, $bien['situacion'] ?? '');
+    $activeWorksheet->setCellValue('L' . $fila, $bien['estado_conservacion'] ?? '');
+    $activeWorksheet->setCellValue('M' . $fila, $bien['observaciones'] ?? '');
+    $activeWorksheet->setCellValue('N' . $fila, $bien['id_ambiente'] ?? '');
+    
+    // Aplicar formato a las celdas de datos
+    foreach ($headers as $columna => $titulo) {
+        $activeWorksheet->getStyle($columna . $fila)->getBorders()
+            ->getAllBorders()
+            ->setBorderStyle(Border::BORDER_THIN);
+        
+        $activeWorksheet->getStyle($columna . $fila)->getFont()
+            ->setName('Arial')
+            ->setSize(10);
+        
+        // Alineación específica por columna
+        if ($columna == 'A' || $columna == 'J' || $columna == 'N') {
+            $activeWorksheet->getStyle($columna . $fila)->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        } else {
+            $activeWorksheet->getStyle($columna . $fila)->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        }
+        
+        $activeWorksheet->getStyle($columna . $fila)->getAlignment()
+            ->setVertical(Alignment::VERTICAL_CENTER);
+    }
+    
+    $fila++;
+}
 
-// Enviar el archivo al navegador para su descarga
+// Ajustar el ancho de las columnas de forma específica
+$activeWorksheet->getColumnDimension('A')->setWidth(8);   // ID
+$activeWorksheet->getColumnDimension('B')->setWidth(20);  // Código Patrimonial
+$activeWorksheet->getColumnDimension('C')->setWidth(35);  // Denominación
+$activeWorksheet->getColumnDimension('D')->setWidth(15);  // Marca
+$activeWorksheet->getColumnDimension('E')->setWidth(15);  // Modelo
+$activeWorksheet->getColumnDimension('F')->setWidth(12);  // Tipo
+$activeWorksheet->getColumnDimension('G')->setWidth(10);  // Color
+$activeWorksheet->getColumnDimension('H')->setWidth(15);  // Serie
+$activeWorksheet->getColumnDimension('I')->setWidth(15);  // Dimensiones
+$activeWorksheet->getColumnDimension('J')->setWidth(12);  // Valor
+$activeWorksheet->getColumnDimension('K')->setWidth(12);  // Situación
+$activeWorksheet->getColumnDimension('L')->setWidth(18);  // Estado Conservación
+$activeWorksheet->getColumnDimension('M')->setWidth(30);  // Observaciones
+$activeWorksheet->getColumnDimension('N')->setWidth(12);  // ID Ambiente
+
+// Configurar altura de filas
+$activeWorksheet->getDefaultRowDimension()->setRowHeight(20);
+$activeWorksheet->getRowDimension(1)->setRowHeight(25); // Fila de encabezados más alta
+
+// Agregar información adicional
+$filaInfo = $fila + 2;
+$activeWorksheet->setCellValue('A' . $filaInfo, 'Total de bienes registrados:');
+$activeWorksheet->setCellValue('B' . $filaInfo, count($bienes));
+$activeWorksheet->getStyle('A' . $filaInfo)->getFont()->setBold(true);
+$activeWorksheet->getStyle('B' . $filaInfo)->getFont()->setBold(true);
+
+$filaInfo++;
+$activeWorksheet->setCellValue('A' . $filaInfo, 'Fecha de generación:');
+$activeWorksheet->setCellValue('B' . $filaInfo, date('d/m/Y H:i:s'));
+$activeWorksheet->getStyle('A' . $filaInfo)->getFont()->setBold(true);
+
+// Configurar headers para descarga directa
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="' . $filename . '"');
+header('Content-Disposition: attachment;filename="reporte_bienes.xlsx"');
 header('Cache-Control: max-age=0');
+header('Expires: 0');
+header('Pragma: public');
 
+// Guardar directamente en la salida (descarga)
+$writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
 exit;
 
