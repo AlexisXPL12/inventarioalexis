@@ -96,7 +96,7 @@ if($fecha_obj instanceof DateTime){
 
     $fecha_formateada = "$dia de ".$meses[$mes]." de $anio";
 }else{
-    $fecha_formateada = "Fecha invàlida";
+    $fecha_formateada = "Fecha inválida";
 }
 
 $contenido_pdf .= '
