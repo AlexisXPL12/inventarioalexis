@@ -1,6 +1,4 @@
 <?php
-// Asegura la zona horaria correcta
-date_default_timezone_set('America/Lima');
 
 // Obtener ID de movimiento desde la URL
 $ruta = explode("/", $_GET['views']);
@@ -34,18 +32,6 @@ if ($err) {
 } else {
     $respuesta = json_decode($response);
 }
-
-// Formatear la fecha del movimiento
-$fechaMovimiento = new IntlDateFormatter(
-    'es_ES',
-    IntlDateFormatter::LONG,
-    IntlDateFormatter::NONE,
-    'America/Lima',
-    IntlDateFormatter::GREGORIAN,
-    "d 'de' MMMM 'del' y"
-);
-$fechaOriginal = new DateTime($respuesta->movimiento->fecha_registro, new DateTimeZone('America/Lima'));
-$fechaFormateada = $fechaMovimiento->format($fechaOriginal);
 
 // -------------------------
 // CONTENIDO HTML
@@ -97,12 +83,27 @@ if (empty($respuesta->detalle)) {
         </tr>';
     }
 }
+$fecha_raw = $respuesta->movimiento->fecha_registro;
+$fecha_obj = DateTime::createFromFormat('Y-m-d H:i:s', $fecha_raw);
+$meses = [
+    1 => "enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre", "diciembre"
+];
+
+if($fecha_obj instanceof DateTime){
+    $dia = $fecha_obj->format('j');
+    $mes = (int)$fecha_obj->format('n');
+    $anio = $fecha_obj->format('Y');
+
+    $fecha_formateada = "$dia de ".$meses[$mes]." de $anio";
+}else{
+    $fecha_formateada = "Fecha invàlida";
+}
 
 $contenido_pdf .= '
     </tbody>
 </table>
 
-<p style="text-align:right; margin-top:35px; font-size:10px;">Ayacucho, ' . $fechaFormateada . '</p>
+<p style="text-align:right; margin-top:35px; font-size:10px;">Ayacucho, '.$dia.' de '.$meses[$mes].' de '.$anio.'</p>
 
 <table style="width:100%; padding: 30px 10px 10px 10px">
     <tr>
