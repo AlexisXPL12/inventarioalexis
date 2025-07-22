@@ -211,8 +211,8 @@ if ($tipo == "sent_email_password") {
                 $mail->isSMTP();
                 $mail->Host = 'mail.importecsolutions.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = '';
-                $mail->Password = '';
+                $mail->Username = 'alexisgvaldivia@importecsolutions.com';
+                $mail->Password = 'Agvt2006@';
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                 $mail->Port = 465;
 
@@ -221,7 +221,7 @@ if ($tipo == "sent_email_password") {
                 $mail->Encoding = 'base64';
 
                 //Recipients
-                $mail->setFrom('', 'Cambio de Contraseña - Xtreme AI');
+                $mail->setFrom('alexisgvaldivia@importecsolutions.com', 'Cambio de Contraseña - Xtreme AI');
                 $mail->addAddress($datos_usuario->correo, $datos_usuario->nombres_apellidos);
 
                 //Content
