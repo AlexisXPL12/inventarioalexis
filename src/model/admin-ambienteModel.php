@@ -287,4 +287,30 @@ public function obtenerResumenAmbiente($id_ambiente)
     
     return $objeto;
 }
+public function listarTodosLosAmbientes()
+{
+    $arrRespuesta = array();
+    $query = "
+        SELECT
+            a.id,
+            a.id_ies,
+            a.encargado,
+            a.codigo,
+            a.detalle,
+            a.otros_detalle,
+            
+            i.id AS institucion_id,
+            i.nombre AS institucion_nombre,
+            i.cod_modular AS institucion_cod_modular,
+            i.ruc AS institucion_ruc
+        FROM ambientes_institucion a
+        LEFT JOIN institucion i ON a.id_ies = i.id
+        ORDER BY i.nombre ASC, a.codigo ASC;
+    ";
+    $respuesta = $this->conexion->query($query);
+    while ($objeto = $respuesta->fetch_object()) {
+        array_push($arrRespuesta, $objeto);
+    }
+    return $arrRespuesta;
+}
 }

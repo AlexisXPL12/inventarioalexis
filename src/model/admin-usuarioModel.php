@@ -248,5 +248,26 @@ public function obtenerUsuariosMasActivos($limite = 5)
     
     return $arrRespuesta;
 }
+public function listarTodosLosUsuarios()
+{
+    $arrRespuesta = array();
+    $query = "
+        SELECT
+            u.id,
+            u.dni,
+            u.nombres_apellidos,
+            u.correo,
+            u.telefono,
+            u.estado,
+            u.fecha_registro
+        FROM usuarios u
+        ORDER BY u.nombres_apellidos ASC;
+    ";
+    $respuesta = $this->conexion->query($query);
+    while ($objeto = $respuesta->fetch_object()) {
+        array_push($arrRespuesta, $objeto);
+    }
+    return $arrRespuesta;
+}
 
 }

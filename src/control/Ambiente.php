@@ -1,20 +1,26 @@
 <?php
 session_start();
 require_once('../model/admin-sesionModel.php');
+require_once('../model/admin-movimientoModel.php');
 require_once('../model/admin-ambienteModel.php');
+require_once('../model/admin-bienModel.php');
 require_once('../model/admin-institucionModel.php');
+require_once('../model/admin-usuarioModel.php');
 require_once('../model/adminModel.php');
 $tipo = $_GET['tipo'];
 
 //instanciar la clase categoria model
 $objSesion = new SessionModel();
+$objMovimiento = new MovimientoModel();
 $objAmbiente = new AmbienteModel();
+$objBien = new BienModel();
 $objAdmin = new AdminModel();
 $objInstitucion = new InstitucionModel();
+$objUsuario = new UsuarioModel();
 
 //variables de sesion
-$id_sesion = $_POST['sesion'];
-$token = $_POST['token'];
+$id_sesion = $_REQUEST['sesion'];
+$token = $_REQUEST['token'];
 
 if ($tipo == "listar_ambientes_ordenados_tabla_e") {
     $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
@@ -228,5 +234,39 @@ if ($tipo == "datos_registro") {
         $arr_Respuesta['status'] = true;
         $arr_Respuesta['msg'] = "Datos encontrados";
     }
+    echo json_encode($arr_Respuesta);
+}
+if ($tipo == "listar_todos_ambientes") {
+    $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
+    
+    if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
+        $arr_Respuesta = array('status' => false, 'contenido' => []);
+        $arr_Ambientes = $objAmbiente->listarTodosLosAmbientes(); // Asegúrate de que este método exista en $objAmbiente
+        
+        $arr_contenido = [];
+        if (!empty($arr_Ambientes)) {
+            foreach ($arr_Ambientes as $ambiente) {
+                // Obtener información de la institución asociada
+                $institucion = isset($ambiente->id_ies) ? $objInstitucion->buscarInstitucionById($ambiente->id_ies) : null;
+                
+                $arr_contenido[] = [
+                    'id' => $ambiente->id,
+                    'codigo' => $ambiente->codigo,
+                    'detalle' => $ambiente->detalle,
+                    'encargado' => $ambiente->encargado,
+                    'otros_detalle' => $ambiente->otros_detalle,
+                    'institucion' => $institucion ? [
+                        'id' => $institucion->id,
+                        'nombre' => $institucion->nombre,
+                        'cod_modular' => $institucion->cod_modular,
+                        'ruc' => $institucion->ruc
+                    ] : null
+                ];
+            }
+            $arr_Respuesta['status'] = true;
+            $arr_Respuesta['contenido'] = $arr_contenido;
+        }
+    }
+    
     echo json_encode($arr_Respuesta);
 }

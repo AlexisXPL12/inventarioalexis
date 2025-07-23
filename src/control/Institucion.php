@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once('../model/admin-sesionModel.php');
+require_once('../model/admin-movimientoModel.php');
+require_once('../model/admin-ambienteModel.php');
+require_once('../model/admin-bienModel.php');
 require_once('../model/admin-institucionModel.php');
 require_once('../model/admin-usuarioModel.php');
 require_once('../model/adminModel.php');
@@ -8,12 +11,17 @@ $tipo = $_GET['tipo'];
 
 //instanciar la clase categoria model
 $objSesion = new SessionModel();
+$objMovimiento = new MovimientoModel();
+$objAmbiente = new AmbienteModel();
+$objBien = new BienModel();
+$objAdmin = new AdminModel();
 $objInstitucion = new InstitucionModel();
 $objUsuario = new UsuarioModel();
 
 //variables de sesion
-$id_sesion = $_POST['sesion'];
-$token = $_POST['token'];
+$id_sesion = $_REQUEST['sesion'];
+$token = $_REQUEST['token'];
+
 if ($tipo == "listar") {
     $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
     if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
@@ -225,5 +233,39 @@ if ($tipo == "datos_registro") {
         }
         $arr_Respuesta['msg'] = "Datos encontrados";
     }
+    echo json_encode($arr_Respuesta);
+}
+if ($tipo == "listar_todas_instituciones") {
+    $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
+    
+    if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
+        $arr_Respuesta = array('status' => false, 'contenido' => []);
+        $arr_Instituciones = $objInstitucion->listarTodasLasInstituciones(); // Asegúrate de que este método exista en $objInstitucion
+        
+        $arr_contenido = [];
+        if (!empty($arr_Instituciones)) {
+            foreach ($arr_Instituciones as $institucion) {
+                // Asegúrate de que el objeto $objUsuario esté disponible y tenga los métodos necesarios
+                $usuario = isset($institucion->beneficiario) ? $objUsuario->buscarUsuarioById($institucion->beneficiario) : null;
+                
+                $arr_contenido[] = [
+                    'id' => $institucion->id,
+                    'cod_modular' => $institucion->cod_modular,
+                    'ruc' => $institucion->ruc,
+                    'nombre' => $institucion->nombre,
+                    'usuario' => $usuario ? [
+                        'id' => $usuario->id,
+                        'nombres_apellidos' => $usuario->nombres_apellidos,
+                        'dni' => $usuario->dni,
+                        'correo' => $usuario->correo,
+                        'telefono' => $usuario->telefono
+                    ] : null
+                ];
+            }
+            $arr_Respuesta['status'] = true;
+            $arr_Respuesta['contenido'] = $arr_contenido;
+        }
+    }
+    
     echo json_encode($arr_Respuesta);
 }

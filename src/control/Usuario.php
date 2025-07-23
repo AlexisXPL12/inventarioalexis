@@ -6,18 +6,26 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 require_once('../model/admin-sesionModel.php');
+require_once('../model/admin-movimientoModel.php');
+require_once('../model/admin-ambienteModel.php');
+require_once('../model/admin-bienModel.php');
+require_once('../model/admin-institucionModel.php');
 require_once('../model/admin-usuarioModel.php');
 require_once('../model/adminModel.php');
 $tipo = $_GET['tipo'];
 
 //instanciar la clase categoria model
 $objSesion = new SessionModel();
-$objUsuario = new UsuarioModel();
+$objMovimiento = new MovimientoModel();
+$objAmbiente = new AmbienteModel();
+$objBien = new BienModel();
 $objAdmin = new AdminModel();
+$objInstitucion = new InstitucionModel();
+$objUsuario = new UsuarioModel();
 
 //variables de sesion
-$id_sesion = $_POST['sesion'];
-$token = $_POST['token'];
+$id_sesion = $_REQUEST['sesion'];
+$token = $_REQUEST['token'];
 
 if ($tipo == "listar_usuarios_ordenados_tabla_e") {
     $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
@@ -639,4 +647,31 @@ if ($tipo == "sent_email_password") {
     // Devolver respuesta JSON
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($arr_Respuesta, JSON_UNESCAPED_UNICODE);
+}
+if ($tipo == "listar_todos_usuarios") {
+    $arr_Respuesta = array('status' => false, 'msg' => 'Error_Sesion');
+    
+    if ($objSesion->verificar_sesion_si_activa($id_sesion, $token)) {
+        $arr_Respuesta = array('status' => false, 'contenido' => []);
+        $arr_Usuarios = $objUsuario->listarTodosLosUsuarios(); // Asegúrate de que este método exista en $objUsuario
+        
+        $arr_contenido = [];
+        if (!empty($arr_Usuarios)) {
+            foreach ($arr_Usuarios as $usuario) {
+                $arr_contenido[] = [
+                    'id' => $usuario->id,
+                    'dni' => $usuario->dni,
+                    'nombres_apellidos' => $usuario->nombres_apellidos,
+                    'correo' => $usuario->correo,
+                    'telefono' => $usuario->telefono,
+                    'estado' => $usuario->estado,
+                    'fecha_registro' => $usuario->fecha_registro
+                ];
+            }
+            $arr_Respuesta['status'] = true;
+            $arr_Respuesta['contenido'] = $arr_contenido;
+        }
+    }
+    
+    echo json_encode($arr_Respuesta);
 }

@@ -155,7 +155,30 @@ class InstitucionModel
         }
         return $arrRespuesta;
     }
-
-
-
+    public function listarTodasLasInstituciones()
+{
+    $arrRespuesta = array();
+    $query = "
+    SELECT
+    i.id,
+    i.beneficiario,
+    i.cod_modular,
+    i.ruc,
+    i.nombre,
+    
+    u.id AS usuario_id,
+    u.nombres_apellidos AS nombre_beneficiario,
+    u.dni AS usuario_dni,
+    u.correo AS usuario_correo,
+    u.telefono AS usuario_telefono
+FROM institucion i
+LEFT JOIN usuarios u ON i.beneficiario = u.id
+ORDER BY i.nombre ASC;
+    ";
+    $respuesta = $this->conexion->query($query);
+    while ($objeto = $respuesta->fetch_object()) {
+        array_push($arrRespuesta, $objeto);
+    }
+    return $arrRespuesta;
+}
 }
