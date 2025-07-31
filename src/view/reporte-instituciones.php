@@ -207,7 +207,7 @@ $activeWorksheet->getStyle('B' . $filaInfo)->getFont()->setBold(true);
 
 // Configurar headers para descarga directa
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="reporte_instituciones.xlsx"');
+header('Content-Disposition: attachment;filename="reporte_instituciones.xlsx' . date('Y-m-d_H-i-s') . '.xlsx"');
 header('Cache-Control: max-age=0');
 header('Expires: 0');
 header('Pragma: public');
