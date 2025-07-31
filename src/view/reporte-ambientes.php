@@ -1,4 +1,6 @@
 <?php
+// Asegura la zona horaria correcta
+date_default_timezone_set('America/Lima');
 // =================== VALIDACIONES INICIALES ===================
 // Verificar que las variables de sesión existan
 if (!isset($_SESSION['sesion_id']) || !isset($_SESSION['sesion_token'])) {
