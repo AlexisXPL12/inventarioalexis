@@ -1,4 +1,6 @@
 <?php
+// Asegura la zona horaria correcta
+date_default_timezone_set('America/Lima');
 // =================== INICIA cURL ===================
 $curl = curl_init();
 
@@ -207,7 +209,7 @@ $activeWorksheet->getStyle('B' . $filaInfo)->getFont()->setBold(true);
 
 // Configurar headers para descarga directa
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="reporte_instituciones_' . date('d-m-Y_H:i:s') . '.xlsx"');
+header('Content-Disposition: attachment;filename="reporte_instituciones_' . date('d-m-Y H-i-s') . '.xlsx"');
 header('Cache-Control: max-age=0');
 header('Expires: 0');
 header('Pragma: public');
