@@ -73,7 +73,7 @@ $activeWorksheet->setTitle('Reporte de Bienes');
 
 // Definir los encabezados de las columnas
 $headers = [
-    'A' => 'ID',
+    'A' => 'Nº',
     'B' => 'Código Patrimonial',
     'C' => 'Denominación',
     'D' => 'Marca',
@@ -117,9 +117,10 @@ foreach ($headers as $columna => $titulo) {
 // Llenar los datos de los bienes con mejor formato
 $bienes = $responseData['contenido'] ?? [];
 $fila = 2; // Comenzar desde la fila 2 (después de los encabezados)
+$contador = 1;
 
 foreach ($bienes as $bien) {
-    $activeWorksheet->setCellValue('A' . $fila, $bien['id'] ?? '');
+    $activeWorksheet->setCellValue('A' . $fila, $contador);
     $activeWorksheet->setCellValue('B' . $fila, $bien['cod_patrimonial'] ?? '');
     $activeWorksheet->setCellValue('C' . $fila, $bien['denominacion'] ?? '');
     $activeWorksheet->setCellValue('D' . $fila, $bien['marca'] ?? '');
@@ -163,6 +164,7 @@ foreach ($bienes as $bien) {
             ->setVertical(Alignment::VERTICAL_CENTER);
     }
     
+    $contador++;
     $fila++;
 }
 

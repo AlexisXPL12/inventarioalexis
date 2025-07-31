@@ -72,7 +72,7 @@ $activeWorksheet->setTitle('Reporte de Instituciones');
 
 // Definir los encabezados de las columnas
 $headers = [
-    'A' => 'ID',
+    'A' => 'Nº',
     'B' => 'Código Modular',
     'C' => 'RUC',
     'D' => 'Nombre de la Institución',
@@ -112,9 +112,10 @@ foreach ($headers as $columna => $titulo) {
 // Llenar los datos de las instituciones con mejor formato
 $instituciones = $responseData['contenido'] ?? [];
 $fila = 2; // Comenzar desde la fila 2 (después de los encabezados)
+$contador = 1;
 
 foreach ($instituciones as $institucion) {
-    $activeWorksheet->setCellValue('A' . $fila, $institucion['id'] ?? '');
+    $activeWorksheet->setCellValue('A' . $fila, $contador);
     $activeWorksheet->setCellValue('B' . $fila, $institucion['cod_modular'] ?? '');
     $activeWorksheet->setCellValue('C' . $fila, $institucion['ruc'] ?? '');
     $activeWorksheet->setCellValue('D' . $fila, $institucion['nombre'] ?? '');
@@ -156,6 +157,7 @@ foreach ($instituciones as $institucion) {
             ->setVertical(Alignment::VERTICAL_CENTER);
     }
     
+    $contador++;
     $fila++;
 }
 

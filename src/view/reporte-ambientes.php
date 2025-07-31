@@ -138,7 +138,7 @@ $activeWorksheet->setTitle('Reporte de Ambientes');
 
 // Definir los encabezados de las columnas
 $headers = [
-    'A' => 'ID',
+    'A' => 'Nº',
     'B' => 'Código',
     'C' => 'Detalle',
     'D' => 'Encargado',
@@ -175,6 +175,7 @@ foreach ($headers as $columna => $titulo) {
 // Llenar los datos de los ambientes con mejor formato
 $ambientes = $responseData['contenido'];
 $fila = 2; // Comenzar desde la fila 2 (después de los encabezados)
+$contador = 1;
 
 foreach ($ambientes as $ambiente) {
     // Convertir objeto a array si es necesario
@@ -185,7 +186,7 @@ foreach ($ambientes as $ambiente) {
     // Formatear valor total
     $valorTotal = number_format($ambiente['valor_total_bienes'] ?? 0, 2);
     
-    $activeWorksheet->setCellValue('A' . $fila, $ambiente['id'] ?? '');
+    $activeWorksheet->setCellValue('A' . $fila, $contador);
     $activeWorksheet->setCellValue('B' . $fila, $ambiente['codigo'] ?? '');
     $activeWorksheet->setCellValue('C' . $fila, $ambiente['detalle'] ?? '');
     $activeWorksheet->setCellValue('D' . $fila, $ambiente['encargado'] ?? '');
@@ -223,6 +224,7 @@ foreach ($ambientes as $ambiente) {
         }
     }
     
+    $contador++;
     $fila++;
 }
 

@@ -110,7 +110,7 @@ $activeWorksheet->setTitle('Reporte de Usuarios');
 
 // Definir los encabezados de las columnas
 $headers = [
-    'A' => 'ID',
+    'A' => 'Nº',
     'B' => 'DNI',
     'C' => 'Nombres y Apellidos',
     'D' => 'Correo Electrónico',
@@ -148,6 +148,7 @@ foreach ($headers as $columna => $titulo) {
 // Llenar los datos de los usuarios con mejor formato
 $usuarios = $responseData['contenido'] ?? [];
 $fila = 2; // Comenzar desde la fila 2 (después de los encabezados)
+$contador = 1;
 
 foreach ($usuarios as $usuario) {
     // Verificar que $usuario sea un array o objeto
@@ -182,7 +183,7 @@ foreach ($usuarios as $usuario) {
         }
     }
     
-    $activeWorksheet->setCellValue('A' . $fila, $usuario['id'] ?? '');
+    $activeWorksheet->setCellValue('A' . $fila, $contador);
     $activeWorksheet->setCellValue('B' . $fila, $usuario['dni'] ?? '');
     $activeWorksheet->setCellValue('C' . $fila, $usuario['nombres_apellidos'] ?? '');
     $activeWorksheet->setCellValue('D' . $fila, $usuario['correo'] ?? '');
@@ -221,6 +222,7 @@ foreach ($usuarios as $usuario) {
         }
     }
     
+    $contador++;
     $fila++;
 }
 

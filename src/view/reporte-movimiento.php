@@ -74,7 +74,7 @@ $activeWorksheet->setTitle('Reporte de Movimientos');
 
 // Definir los encabezados de las columnas
 $headers = [
-    'A' => 'ID',
+    'A' => 'Nº',
     'B' => 'Ambiente Origen',
     'C' => 'Ambiente Destino',
     'D' => 'Usuario Registro',
@@ -112,10 +112,11 @@ foreach ($headers as $columna => $titulo) {
 // Llenar los datos de los movimientos con mejor formato
 $movimientos = $responseData['contenido'] ?? [];
 $fila = 2; // Comenzar desde la fila 2 (después de los encabezados)
+$contador = 1;
 
 foreach ($movimientos as $movimiento) {
     // Usar los nombres obtenidos del controlador corregido
-    $activeWorksheet->setCellValue('A' . $fila, $movimiento['id'] ?? '');
+    $activeWorksheet->setCellValue('A' . $fila, $contador);
     $activeWorksheet->setCellValue('B' . $fila, $movimiento['ambiente_origen'] ?? 'N/A');
     $activeWorksheet->setCellValue('C' . $fila, $movimiento['ambiente_destino'] ?? 'N/A');
     $activeWorksheet->setCellValue('D' . $fila, $movimiento['usuario_registro'] ?? 'N/A');
@@ -147,6 +148,7 @@ foreach ($movimientos as $movimiento) {
             ->setVertical(Alignment::VERTICAL_CENTER);
     }
     
+    $contador++;
     $fila++;
 }
 
