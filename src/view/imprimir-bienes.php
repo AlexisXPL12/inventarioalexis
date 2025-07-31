@@ -129,7 +129,7 @@ if (isset($respuesta['contenido']) && !empty($respuesta['contenido'])) {
             <td style="border:1px solid #ccc; font-size:8px;">' . $bien['marca'] . '</td>
             <td style="border:1px solid #ccc; font-size:8px;">' . $bien['modelo'] . '</td>
             <td style="border:1px solid #ccc; font-size:8px;">' . $bien['color'] . '</td>
-            <td style="border:1px solid #ccc; font-size:8px;">' . (isset($bien['ambiente']['detalle']) ? $bien['ambiente']['detalle'] : 'N/A') . '</td>
+            <td style="border:1px solid #ccc; font-size:8px;">' . (isset($bien['ambiente_institucion']['detalle']) ? $bien['ambiente_institucion']['detalle'] : 'N/A') . '</td>
             <td style="border:1px solid #ccc; font-size:8px;">' . $bien['estado_conservacion'] . '</td>
         </tr>';
         $i++;
